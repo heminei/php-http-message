@@ -62,6 +62,14 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
         return $this->parsedBody;
     }
 
+    public function getParsedBodyParam($name, $default = null) {
+        if (array_key_exists($name, $this->parsedBody) === false) {
+            return $default;
+        }
+
+        return $this->parsedBody[$name];
+    }
+
     public function getQueryParams(): array {
         return $this->queryParams;
     }
@@ -88,6 +96,20 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
 
     public function getUploadedFiles(): array {
         return $this->uploadedFiles;
+    }
+
+    /**
+     *
+     * @param string $name
+     * @param mixed $default
+     * @return UploadedFile|mixed
+     */
+    public function getUploadedFile($name, $default = null) {
+        if (array_key_exists($name, $this->uploadedFiles) === false) {
+            return $default;
+        }
+
+        return $this->uploadedFiles[$name];
     }
 
     public function withAttribute($name, $value): self {

@@ -115,4 +115,14 @@ class Response extends Message implements \Psr\Http\Message\ResponseInterface {
         return $new;
     }
 
+    public function send() {
+        header("HTTP/" . $this->getProtocolVersion() . " " . $this->getStatusCode() . " " . $this->getReasonPhrase(), true, $this->getStatusCode());
+
+        foreach ($this->getHeaders() as $name => $value) {
+            header($name . ": " . implode(", ", $value), true);
+        }
+
+        echo (string) $this->getBody();
+    }
+
 }
