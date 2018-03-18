@@ -47,6 +47,24 @@ class Uri implements \Psr\Http\Message\UriInterface {
      */
     private $immutable = true;
 
+    /**
+     *
+     * @var array
+     */
+    private static $defaultPorts = [
+        'http' => 80,
+        'https' => 443,
+        'ftp' => 21,
+        'gopher' => 70,
+        'nntp' => 119,
+        'news' => 119,
+        'telnet' => 23,
+        'tn3270' => 23,
+        'imap' => 143,
+        'pop' => 110,
+        'ldap' => 389,
+    ];
+
     public function __construct(string $uri = "") {
         if ($uri !== "") {
             $parts = parse_url($uri);
@@ -106,7 +124,7 @@ class Uri implements \Psr\Http\Message\UriInterface {
         if ($this->userInfo !== '') {
             $authority = $this->userInfo . '@' . $authority;
         }
-        if ($this->port !== null) {
+        if ($this->port !== null && self::$defaultPorts[$this->scheme] != $this->port) {
             $authority .= ':' . $this->port;
         }
         return $authority;
