@@ -211,7 +211,11 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
                     $headers[str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))))] = $value;
                 }
             }
+            if (isset($_SERVER['CONTENT_TYPE'])) {
+                $headers['Content-Type'] = $_SERVER['CONTENT_TYPE'];
+            }
         }
+
         foreach ($headers as $name => $value) {
             $new = $new->withHeader($name, [$value]);
         }
@@ -231,14 +235,14 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
         $new = $new->withCookieParams($_COOKIE);
         $new = $new->withQueryParams($_GET);
 
-        if ($new->hasHeader("Content-Type") && strstr($this->getHeaderLine("Content-Type"), "application/json")) {
+        if ($new->hasHeader("Content-Type") && strstr($new->getHeaderLine("Content-Type"), "application/json")) {
             $input = file_get_contents('php://input');
             $json = json_decode($input, true);
             if (is_array($json)) {
-                $new = $new->withParsedBody($_POST);
+                $new = $new->withParsedBody($json);
             }
-        } else if ($new->hasHeader("Content-Type") && strstr($this->getHeaderLine("Content-Type"), "multipart/form-data") && $new->getMethod() !== "POST") {
-            $multipartFormData = $this->parseMultipartFormData($body->getContents(), $this->getHeaderLine("Content-Type"));
+        } else if ($new->hasHeader("Content-Type") && strstr($new->getHeaderLine("Content-Type"), "multipart/form-data") && $new->getMethod() !== "POST") {
+            $multipartFormData = $new->parseMultipartFormData($body->getContents(), $new->getHeaderLine("Content-Type"));
             $new = $new->withParsedBody($multipartFormData['params']);
             $new = $new->withUploadedFiles($multipartFormData['files']);
         } else {
