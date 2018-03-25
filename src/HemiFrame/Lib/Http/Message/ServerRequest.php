@@ -179,20 +179,22 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
     }
 
     public function getClientIP() {
-        foreach (array('HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_FORWARDED', 'HTTP_X_CLUSTER_CLIENT_IP', 'HTTP_FORWARDED_FOR', 'HTTP_FORWARDED', 'REMOTE_ADDR') as $key) {
-            if (array_key_exists($key, $this->getHeaders()) === true) {
+        foreach (array('CLIENT-IP', 'X-FORWARDED-FOR', 'X-FORWARDED', 'X-CLUSTER-CLIENT-IP', 'FORWARDED-FOR', 'FORWARDED') as $key) {
+            if ($this->hasHeader($key) === true) {
                 foreach ($this->getHeader($key) as $ip) {
                     if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) !== false) {
                         return $ip;
                     }
                 }
-                foreach (explode(',', $_SERVER[$key]) as $ip) {
+                foreach (explode(',', $this->getHeader($key)) as $ip) {
                     if (filter_var($ip, FILTER_VALIDATE_IP) !== false) {
                         return $ip;
                     }
                 }
             }
         }
+
+        return $this->getServerParam("REMOTE_ADDR");
     }
 
     public function fromGlobals(): self {
