@@ -5,7 +5,8 @@ namespace HemiFrame\Lib\Http\Message;
 /**
  * @author heminei <heminei@heminei.com>
  */
-class Stream implements \Psr\Http\Message\StreamInterface {
+class Stream implements \Psr\Http\Message\StreamInterface
+{
 
     private $stream;
     private $isReadable;
@@ -32,7 +33,8 @@ class Stream implements \Psr\Http\Message\StreamInterface {
         ]
     ];
 
-    public function __construct($stream = null) {
+    public function __construct($stream = null)
+    {
         if ($stream === null) {
             $this->stream = tmpfile();
         } else if (is_resource($stream)) {
@@ -48,20 +50,24 @@ class Stream implements \Psr\Http\Message\StreamInterface {
         $this->uri = $meta['uri'];
     }
 
-    public function __destruct() {
+    public function __destruct()
+    {
         $this->close();
     }
 
-    public function __toString(): string {
+    public function __toString() : string
+    {
         return $this->toString();
     }
 
-    public function toString(): string {
+    public function toString() : string
+    {
         $this->seek(0);
         return $this->getContents();
     }
 
-    public function close(): void {
+    public function close() : void
+    {
         if (isset($this->stream)) {
             if (is_resource($this->stream)) {
                 fclose($this->stream);
@@ -70,7 +76,8 @@ class Stream implements \Psr\Http\Message\StreamInterface {
         }
     }
 
-    public function detach() {
+    public function detach()
+    {
         if (!isset($this->stream)) {
             return null;
         }
@@ -86,14 +93,16 @@ class Stream implements \Psr\Http\Message\StreamInterface {
         return $result;
     }
 
-    public function eof(): bool {
+    public function eof() : bool
+    {
         if (!isset($this->stream)) {
             throw new \RuntimeException('Stream is detached');
         }
         return feof($this->stream);
     }
 
-    public function getContents(): string {
+    public function getContents() : string
+    {
         if (!isset($this->stream)) {
             throw new \RuntimeException('Stream is detached');
         }
@@ -104,7 +113,8 @@ class Stream implements \Psr\Http\Message\StreamInterface {
         return $contents;
     }
 
-    public function getMetadata($key = null) {
+    public function getMetadata($key = null)
+    {
         if (!isset($this->stream)) {
             return isset($key) ? null : [];
         } elseif (!isset($key)) {
@@ -114,7 +124,8 @@ class Stream implements \Psr\Http\Message\StreamInterface {
         return isset($meta[$key]) ? $meta[$key] : null;
     }
 
-    public function getSize() {
+    public function getSize()
+    {
         if ($this->size !== null) {
             return $this->size;
         }
@@ -134,19 +145,23 @@ class Stream implements \Psr\Http\Message\StreamInterface {
         return null;
     }
 
-    public function isReadable(): bool {
+    public function isReadable() : bool
+    {
         return $this->isReadable;
     }
 
-    public function isSeekable(): bool {
+    public function isSeekable() : bool
+    {
         return $this->isSeekable;
     }
 
-    public function isWritable(): bool {
+    public function isWritable() : bool
+    {
         return $this->isWritable;
     }
 
-    public function read($length): string {
+    public function read($length) : string
+    {
         if (!isset($this->stream)) {
             throw new \RuntimeException('Stream is detached');
         }
@@ -166,11 +181,13 @@ class Stream implements \Psr\Http\Message\StreamInterface {
         return $string;
     }
 
-    public function rewind() {
+    public function rewind()
+    {
         $this->seek(0);
     }
 
-    public function seek($offset, $whence = SEEK_SET) {
+    public function seek($offset, $whence = SEEK_SET)
+    {
         if (!isset($this->stream)) {
             throw new \RuntimeException('Stream is detached');
         }
@@ -179,11 +196,12 @@ class Stream implements \Psr\Http\Message\StreamInterface {
         }
         if (fseek($this->stream, $offset, $whence) === -1) {
             throw new \RuntimeException('Unable to seek to stream position '
-            . $offset . ' with whence ' . var_export($whence, true));
+                . $offset . ' with whence ' . var_export($whence, true));
         }
     }
 
-    public function tell(): int {
+    public function tell() : int
+    {
         if (!isset($this->stream)) {
             throw new \RuntimeException('Stream is detached');
         }
@@ -194,7 +212,8 @@ class Stream implements \Psr\Http\Message\StreamInterface {
         return $result;
     }
 
-    public function write($string): int {
+    public function write($string) : int
+    {
         if (!isset($this->stream)) {
             throw new \RuntimeException('Stream is detached');
         }

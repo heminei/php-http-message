@@ -5,7 +5,8 @@ namespace HemiFrame\Lib\Http\Message;
 /**
  * @author heminei <heminei@heminei.com>
  */
-class Request extends Message implements \Psr\Http\Message\RequestInterface {
+class Request extends Message implements \Psr\Http\Message\RequestInterface
+{
 
     /**
      * @var string
@@ -30,7 +31,8 @@ class Request extends Message implements \Psr\Http\Message\RequestInterface {
      * @param Stream|string $body
      * @param string $protocolVersion
      */
-    public function __construct(string $method = "GET", $uri = "", array $headers = array(), $body = null, string $protocolVersion = '1.1') {
+    public function __construct(string $method = "GET", $uri = "", array $headers = array(), $body = null, string $protocolVersion = '1.1')
+    {
         if (!($uri instanceof UriInterface)) {
             $uri = new Uri($uri);
         }
@@ -40,11 +42,13 @@ class Request extends Message implements \Psr\Http\Message\RequestInterface {
         parent::__construct($headers, $body, $protocolVersion);
     }
 
-    public function getMethod(): string {
+    public function getMethod() : string
+    {
         return $this->method;
     }
 
-    public function getRequestTarget(): string {
+    public function getRequestTarget() : string
+    {
         if ($this->requestTarget !== null) {
             return $this->requestTarget;
         }
@@ -58,11 +62,13 @@ class Request extends Message implements \Psr\Http\Message\RequestInterface {
         return $target;
     }
 
-    public function getUri(): \Psr\Http\Message\UriInterface {
+    public function getUri() : \Psr\Http\Message\UriInterface
+    {
         return $this->uri;
     }
 
-    public function withMethod($method): self {
+    public function withMethod($method) : self
+    {
         $new = $this;
         if ($this->getImmutable()) {
             $new = clone $this;
@@ -73,7 +79,8 @@ class Request extends Message implements \Psr\Http\Message\RequestInterface {
         return $new;
     }
 
-    public function withRequestTarget($requestTarget): self {
+    public function withRequestTarget($requestTarget) : self
+    {
         if (preg_match('#\s#', $requestTarget)) {
             throw new InvalidArgumentException('Invalid request target provided; cannot contain whitespace');
         }
@@ -88,7 +95,8 @@ class Request extends Message implements \Psr\Http\Message\RequestInterface {
         return $new;
     }
 
-    public function withUri(\Psr\Http\Message\UriInterface $uri, $preserveHost = false): self {
+    public function withUri(\Psr\Http\Message\UriInterface $uri, $preserveHost = false) : self
+    {
         $new = $this;
         if ($this->getImmutable()) {
             $new = clone $this;

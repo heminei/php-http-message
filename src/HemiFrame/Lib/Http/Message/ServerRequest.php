@@ -2,7 +2,8 @@
 
 namespace HemiFrame\Lib\Http\Message;
 
-class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestInterface {
+class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestInterface
+{
 
     /**
      * @var array
@@ -34,7 +35,8 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
      */
     private $parsedBody;
 
-    public function getAttribute($name, $default = null) {
+    public function getAttribute($name, $default = null)
+    {
         if (array_key_exists($name, $this->attributes) === false) {
             return $default;
         }
@@ -42,15 +44,18 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
         return $this->attributes[$name];
     }
 
-    public function getAttributes(): array {
+    public function getAttributes() : array
+    {
         return $this->attributes;
     }
 
-    public function getCookieParams(): array {
+    public function getCookieParams() : array
+    {
         return $this->cookieParams;
     }
 
-    public function getCookieParam($name, $default = null) {
+    public function getCookieParam($name, $default = null)
+    {
         if (array_key_exists($name, $this->cookieParams) === false) {
             return $default;
         }
@@ -58,11 +63,13 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
         return $this->cookieParams[$name];
     }
 
-    public function getParsedBody() {
+    public function getParsedBody()
+    {
         return $this->parsedBody;
     }
 
-    public function getParsedBodyParam($name, $default = null) {
+    public function getParsedBodyParam($name, $default = null)
+    {
         if (array_key_exists($name, $this->parsedBody) === false) {
             return $default;
         }
@@ -70,11 +77,13 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
         return $this->parsedBody[$name];
     }
 
-    public function getQueryParams(): array {
+    public function getQueryParams() : array
+    {
         return $this->queryParams;
     }
 
-    public function getQueryParam($name, $default = null) {
+    public function getQueryParam($name, $default = null)
+    {
         if (array_key_exists($name, $this->queryParams) === false) {
             return $default;
         }
@@ -82,11 +91,13 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
         return $this->queryParams[$name];
     }
 
-    public function getServerParams(): array {
+    public function getServerParams() : array
+    {
         return $this->serverParams;
     }
 
-    public function getServerParam($name, $default = null) {
+    public function getServerParam($name, $default = null)
+    {
         if (array_key_exists($name, $this->serverParams) === false) {
             return $default;
         }
@@ -94,7 +105,8 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
         return $this->serverParams[$name];
     }
 
-    public function getUploadedFiles(): array {
+    public function getUploadedFiles() : array
+    {
         return $this->uploadedFiles;
     }
 
@@ -104,7 +116,8 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
      * @param mixed $default
      * @return UploadedFile|mixed
      */
-    public function getUploadedFile($name, $default = null) {
+    public function getUploadedFile($name, $default = null)
+    {
         if (array_key_exists($name, $this->uploadedFiles) === false) {
             return $default;
         }
@@ -112,7 +125,8 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
         return $this->uploadedFiles[$name];
     }
 
-    public function withAttribute($name, $value): self {
+    public function withAttribute($name, $value) : self
+    {
         $new = $this;
         if ($this->getImmutable()) {
             $new = clone $this;
@@ -123,7 +137,8 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
         return $new;
     }
 
-    public function withCookieParams(array $cookies): self {
+    public function withCookieParams(array $cookies) : self
+    {
         $new = $this;
         if ($this->getImmutable()) {
             $new = clone $this;
@@ -133,7 +148,8 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
         return $new;
     }
 
-    public function withParsedBody($data): self {
+    public function withParsedBody($data) : self
+    {
         $new = $this;
         if ($this->getImmutable()) {
             $new = clone $this;
@@ -143,7 +159,8 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
         return $new;
     }
 
-    public function withQueryParams(array $query): self {
+    public function withQueryParams(array $query) : self
+    {
         $new = $this;
         if ($this->getImmutable()) {
             $new = clone $this;
@@ -153,7 +170,8 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
         return $new;
     }
 
-    public function withUploadedFiles(array $uploadedFiles): self {
+    public function withUploadedFiles(array $uploadedFiles) : self
+    {
         $new = $this;
         if ($this->getImmutable()) {
             $new = clone $this;
@@ -164,7 +182,8 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
         return $new;
     }
 
-    public function withoutAttribute($name): self {
+    public function withoutAttribute($name) : self
+    {
         if (array_key_exists($name, $this->attributes) === false) {
             return $this;
         }
@@ -178,7 +197,8 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
         return $new;
     }
 
-    public function getClientIP() {
+    public function getClientIP()
+    {
         foreach (array('CLIENT-IP', 'X-FORWARDED-FOR', 'X-FORWARDED', 'X-CLUSTER-CLIENT-IP', 'FORWARDED-FOR', 'FORWARDED') as $key) {
             if ($this->hasHeader($key) === true) {
                 foreach ($this->getHeader($key) as $ip) {
@@ -197,7 +217,8 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
         return $this->getServerParam("REMOTE_ADDR");
     }
 
-    public function fromGlobals(): self {
+    public function fromGlobals() : self
+    {
         $new = $this;
         if ($this->getImmutable()) {
             $new = clone $this;
@@ -267,7 +288,8 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
         return $new;
     }
 
-    private function parseMultipartFormData(string $string, string $contentType) {
+    private function parseMultipartFormData(string $string, string $contentType)
+    {
         $boundaryArray = [];
         preg_match('/boundary=(?<boundary>.*)$/', $contentType, $boundaryArray);
         $boundary = isset($boundaryArray['boundary']) ? $boundaryArray['boundary'] : null;

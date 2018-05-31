@@ -5,7 +5,8 @@ namespace HemiFrame\Lib\Http\Message;
 /**
  * @author heminei <heminei@heminei.com>
  */
-class Response extends Message implements \Psr\Http\Message\ResponseInterface {
+class Response extends Message implements \Psr\Http\Message\ResponseInterface
+{
 
     /** @var array Map of standard HTTP status code/reason phrases */
     private static $phrases = [
@@ -87,27 +88,31 @@ class Response extends Message implements \Psr\Http\Message\ResponseInterface {
      * @param Stream|string $body
      * @param string $protocolVersion
      */
-    public function __construct(int $statusCode = 200, string $reasonPhrase = "", array $headers = array(), $body = null, string $protocolVersion = '1.1') {
+    public function __construct(int $statusCode = 200, string $reasonPhrase = "", array $headers = array(), $body = null, string $protocolVersion = '1.1')
+    {
         $this->statusCode = $statusCode;
         $this->reasonPhrase = $reasonPhrase;
         parent::__construct($headers, $body, $protocolVersion);
     }
 
-    public function getReasonPhrase(): string {
+    public function getReasonPhrase() : string
+    {
         return $this->reasonPhrase;
     }
 
-    public function getStatusCode(): int {
+    public function getStatusCode() : int
+    {
         return $this->statusCode;
     }
 
-    public function withStatus($code, $reasonPhrase = ''): self {
+    public function withStatus($code, $reasonPhrase = '') : self
+    {
         $new = $this;
         if ($this->getImmutable()) {
             $new = clone $this;
         }
 
-        $new->statusCode = (int) $code;
+        $new->statusCode = (int)$code;
         if ($reasonPhrase == '' && isset(self::$phrases[$new->statusCode])) {
             $reasonPhrase = self::$phrases[$new->statusCode];
         }
@@ -115,14 +120,15 @@ class Response extends Message implements \Psr\Http\Message\ResponseInterface {
         return $new;
     }
 
-    public function send() {
+    public function send()
+    {
         header("HTTP/" . $this->getProtocolVersion() . " " . $this->getStatusCode() . " " . $this->getReasonPhrase(), true, $this->getStatusCode());
 
         foreach ($this->getHeaders() as $name => $value) {
             header($name . ": " . implode(", ", $value), true);
         }
 
-        echo (string) $this->getBody();
+        echo (string)$this->getBody();
     }
 
 }

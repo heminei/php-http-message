@@ -5,7 +5,8 @@ namespace HemiFrame\Lib\Http\Message;
 /**
  * @author heminei <heminei@heminei.com>
  */
-class UploadedFile implements \Psr\Http\Message\UploadedFileInterface {
+class UploadedFile implements \Psr\Http\Message\UploadedFileInterface
+{
 
     /**
      * @var StreamInterface|null
@@ -46,7 +47,8 @@ class UploadedFile implements \Psr\Http\Message\UploadedFileInterface {
         UPLOAD_ERR_EXTENSION,
     ];
 
-    public function __construct($streamOrFile, $clientFilename = null, $clientMediaType = null, $error = UPLOAD_ERR_OK) {
+    public function __construct($streamOrFile, $clientFilename = null, $clientMediaType = null, $error = UPLOAD_ERR_OK)
+    {
         if (is_string($streamOrFile)) {
             if (!file_exists($streamOrFile)) {
                 throw new \InvalidArgumentException('Invalid file provided for UploadedFile. File not exists: ' . $streamOrFile);
@@ -76,27 +78,33 @@ class UploadedFile implements \Psr\Http\Message\UploadedFileInterface {
         $this->size = $this->stream->getSize();
     }
 
-    public function getClientFilename() {
+    public function getClientFilename()
+    {
         return $this->clientFilename;
     }
 
-    public function getClientMediaType() {
+    public function getClientMediaType()
+    {
         return $this->clientMediaType;
     }
 
-    public function getError(): int {
+    public function getError() : int
+    {
         return $this->error;
     }
 
-    public function getSize() {
+    public function getSize()
+    {
         return $this->size;
     }
 
-    public function getStream(): \Psr\Http\Message\StreamInterface {
+    public function getStream() : \Psr\Http\Message\StreamInterface
+    {
         return $this->stream;
     }
 
-    public function moveTo($targetPath) {
+    public function moveTo($targetPath)
+    {
         if (empty($targetPath) || !is_string($targetPath)) {
             throw new \InvalidArgumentException('Invalid path provided for move operation; must be a non-empty string');
         }
@@ -107,7 +115,7 @@ class UploadedFile implements \Psr\Http\Message\UploadedFileInterface {
         }
 
         $stream = new Stream(fopen($targetPath, "w"));
-        $stream->write($this->getStream()->getContents());
+        $stream->write((string)$this->getStream());
         $stream->close();
     }
 

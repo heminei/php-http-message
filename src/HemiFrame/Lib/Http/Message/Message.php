@@ -5,7 +5,8 @@ namespace HemiFrame\Lib\Http\Message;
 /**
  * @author heminei <heminei@heminei.com>
  */
-class Message implements \Psr\Http\Message\MessageInterface {
+class Message implements \Psr\Http\Message\MessageInterface
+{
 
     /**
      * @var \Psr\Http\Message\StreamInterface
@@ -33,7 +34,8 @@ class Message implements \Psr\Http\Message\MessageInterface {
      * @param \HemiFrame\Lib\Http\Message\Stream||string $body
      * @param string $protocolVersion
      */
-    public function __construct(array $headers = [], $body = null, string $protocolVersion = '1.1') {
+    public function __construct(array $headers = [], $body = null, string $protocolVersion = '1.1')
+    {
         if (!empty($headers)) {
             $this->headers = $headers;
         }
@@ -50,11 +52,13 @@ class Message implements \Psr\Http\Message\MessageInterface {
         }
     }
 
-    public function getBody(): \Psr\Http\Message\StreamInterface {
+    public function getBody() : \Psr\Http\Message\StreamInterface
+    {
         return $this->body;
     }
 
-    public function getHeader($name): array {
+    public function getHeader($name) : array
+    {
         foreach ($this->headers as $key => $value) {
             if (strtolower($key) == strtolower($name)) {
                 return $value;
@@ -63,23 +67,28 @@ class Message implements \Psr\Http\Message\MessageInterface {
         return [];
     }
 
-    public function getHeaderLine($name): string {
+    public function getHeaderLine($name) : string
+    {
         return implode(', ', $this->getHeader($name));
     }
 
-    public function getHeaders(): array {
+    public function getHeaders() : array
+    {
         return $this->headers;
     }
 
-    public function getProtocolVersion(): string {
+    public function getProtocolVersion() : string
+    {
         return $this->protocolVersion;
     }
 
-    public function getImmutable() {
+    public function getImmutable()
+    {
         return $this->immutable;
     }
 
-    public function hasHeader($name): bool {
+    public function hasHeader($name) : bool
+    {
         if (isset($this->headers[$name])) {
             return true;
         }
@@ -93,7 +102,8 @@ class Message implements \Psr\Http\Message\MessageInterface {
         return false;
     }
 
-    public function withAddedHeader($name, $value): self {
+    public function withAddedHeader($name, $value) : self
+    {
         if (!is_array($value)) {
             $value = [$value];
         }
@@ -103,7 +113,7 @@ class Message implements \Psr\Http\Message\MessageInterface {
             $new = clone $this;
         }
 
-        array_walk($new->headers, function(&$item, $key) use($name, $value) {
+        array_walk($new->headers, function (&$item, $key) use ($name, $value) {
             if (strtolower($key) == strtolower($name)) {
                 $item = array_merge($item, $value);
             }
@@ -117,7 +127,8 @@ class Message implements \Psr\Http\Message\MessageInterface {
      * @param \Psr\Http\Message\StreamInterface $body
      * @return self
      */
-    public function withBody(\Psr\Http\Message\StreamInterface $body): self {
+    public function withBody(\Psr\Http\Message\StreamInterface $body) : self
+    {
         $new = $this;
         if ($this->getImmutable()) {
             $new = clone $this;
@@ -128,7 +139,8 @@ class Message implements \Psr\Http\Message\MessageInterface {
         return $new;
     }
 
-    public function withHeader($name, $value): self {
+    public function withHeader($name, $value) : self
+    {
         if (!is_array($value)) {
             $value = [$value];
         }
@@ -138,7 +150,7 @@ class Message implements \Psr\Http\Message\MessageInterface {
             $new = clone $this;
         }
 
-        array_walk($new->headers, function(&$item, $key) use($name, $value) {
+        array_walk($new->headers, function (&$item, $key) use ($name, $value) {
             if (strtolower($key) == strtolower($name)) {
                 unset($item);
             }
@@ -149,7 +161,8 @@ class Message implements \Psr\Http\Message\MessageInterface {
         return $new;
     }
 
-    public function withProtocolVersion($version): self {
+    public function withProtocolVersion($version) : self
+    {
         $new = $this;
         if ($this->getImmutable()) {
             $new = clone $this;
@@ -160,13 +173,14 @@ class Message implements \Psr\Http\Message\MessageInterface {
         return $new;
     }
 
-    public function withoutHeader($name): self {
+    public function withoutHeader($name) : self
+    {
         $new = $this;
         if ($this->getImmutable()) {
             $new = clone $this;
         }
 
-        array_walk($new->headers, function(&$item, $key) use($name) {
+        array_walk($new->headers, function (&$item, $key) use ($name) {
             if (strtolower($key) == strtolower($name)) {
                 unset($item);
             }
@@ -175,7 +189,8 @@ class Message implements \Psr\Http\Message\MessageInterface {
         return $new;
     }
 
-    public function setImmutable(bool $immutable) {
+    public function setImmutable(bool $immutable)
+    {
         $this->immutable = $immutable;
 
         return $this;
