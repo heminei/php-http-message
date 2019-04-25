@@ -44,12 +44,12 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
         return $this->attributes[$name];
     }
 
-    public function getAttributes() : array
+    public function getAttributes(): array
     {
         return $this->attributes;
     }
 
-    public function getCookieParams() : array
+    public function getCookieParams(): array
     {
         return $this->cookieParams;
     }
@@ -77,7 +77,7 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
         return $this->parsedBody[$name];
     }
 
-    public function getQueryParams() : array
+    public function getQueryParams(): array
     {
         return $this->queryParams;
     }
@@ -91,7 +91,7 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
         return $this->queryParams[$name];
     }
 
-    public function getServerParams() : array
+    public function getServerParams(): array
     {
         return $this->serverParams;
     }
@@ -105,7 +105,7 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
         return $this->serverParams[$name];
     }
 
-    public function getUploadedFiles() : array
+    public function getUploadedFiles(): array
     {
         return $this->uploadedFiles;
     }
@@ -125,7 +125,7 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
         return $this->uploadedFiles[$name];
     }
 
-    public function withAttribute($name, $value) : self
+    public function withAttribute($name, $value): self
     {
         $new = $this;
         if ($this->getImmutable()) {
@@ -137,7 +137,7 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
         return $new;
     }
 
-    public function withCookieParams(array $cookies) : self
+    public function withCookieParams(array $cookies): self
     {
         $new = $this;
         if ($this->getImmutable()) {
@@ -148,7 +148,7 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
         return $new;
     }
 
-    public function withParsedBody($data) : self
+    public function withParsedBody($data): self
     {
         $new = $this;
         if ($this->getImmutable()) {
@@ -159,7 +159,7 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
         return $new;
     }
 
-    public function withQueryParams(array $query) : self
+    public function withQueryParams(array $query): self
     {
         $new = $this;
         if ($this->getImmutable()) {
@@ -170,7 +170,7 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
         return $new;
     }
 
-    public function withUploadedFiles(array $uploadedFiles) : self
+    public function withUploadedFiles(array $uploadedFiles): self
     {
         $new = $this;
         if ($this->getImmutable()) {
@@ -182,7 +182,7 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
         return $new;
     }
 
-    public function withoutAttribute($name) : self
+    public function withoutAttribute($name): self
     {
         if (array_key_exists($name, $this->attributes) === false) {
             return $this;
@@ -206,7 +206,7 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
                         return $ip;
                     }
                 }
-                foreach (explode(',', $this->getHeader($key)) as $ip) {
+                foreach ($this->getHeader($key) as $ip) {
                     if (filter_var($ip, FILTER_VALIDATE_IP) !== false) {
                         return $ip;
                     }
@@ -217,7 +217,7 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
         return $this->getServerParam("REMOTE_ADDR");
     }
 
-    public function fromGlobals() : self
+    public function fromGlobals(): self
     {
         $new = $this;
         if ($this->getImmutable()) {
