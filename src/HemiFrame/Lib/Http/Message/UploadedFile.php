@@ -88,7 +88,7 @@ class UploadedFile implements \Psr\Http\Message\UploadedFileInterface
         return $this->clientMediaType;
     }
 
-    public function getError() : int
+    public function getError(): int
     {
         return $this->error;
     }
@@ -98,7 +98,7 @@ class UploadedFile implements \Psr\Http\Message\UploadedFileInterface
         return $this->size;
     }
 
-    public function getStream() : \Psr\Http\Message\StreamInterface
+    public function getStream(): \Psr\Http\Message\StreamInterface
     {
         return $this->stream;
     }
@@ -115,8 +115,7 @@ class UploadedFile implements \Psr\Http\Message\UploadedFileInterface
         }
 
         $stream = new Stream(fopen($targetPath, "w"));
-        $stream->write((string)$this->getStream());
+        $stream->write((string) $this->getStream());
         $stream->close();
     }
-
 }

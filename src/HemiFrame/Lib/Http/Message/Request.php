@@ -42,12 +42,12 @@ class Request extends Message implements \Psr\Http\Message\RequestInterface
         parent::__construct($headers, $body, $protocolVersion);
     }
 
-    public function getMethod() : string
+    public function getMethod(): string
     {
         return $this->method;
     }
 
-    public function getRequestTarget() : string
+    public function getRequestTarget(): string
     {
         if ($this->requestTarget !== null) {
             return $this->requestTarget;
@@ -62,12 +62,12 @@ class Request extends Message implements \Psr\Http\Message\RequestInterface
         return $target;
     }
 
-    public function getUri() : \Psr\Http\Message\UriInterface
+    public function getUri(): \Psr\Http\Message\UriInterface
     {
         return $this->uri;
     }
 
-    public function withMethod($method) : self
+    public function withMethod($method): self
     {
         $new = $this;
         if ($this->getImmutable()) {
@@ -79,7 +79,7 @@ class Request extends Message implements \Psr\Http\Message\RequestInterface
         return $new;
     }
 
-    public function withRequestTarget($requestTarget) : self
+    public function withRequestTarget($requestTarget): self
     {
         if (preg_match('#\s#', $requestTarget)) {
             throw new InvalidArgumentException('Invalid request target provided; cannot contain whitespace');
@@ -95,7 +95,7 @@ class Request extends Message implements \Psr\Http\Message\RequestInterface
         return $new;
     }
 
-    public function withUri(\Psr\Http\Message\UriInterface $uri, $preserveHost = false) : self
+    public function withUri(\Psr\Http\Message\UriInterface $uri, $preserveHost = false): self
     {
         $new = $this;
         if ($this->getImmutable()) {
@@ -118,5 +118,4 @@ class Request extends Message implements \Psr\Http\Message\RequestInterface
 
         return $new;
     }
-
 }

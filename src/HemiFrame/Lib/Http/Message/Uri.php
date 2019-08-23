@@ -98,12 +98,12 @@ class Uri implements \Psr\Http\Message\UriInterface
         }
     }
 
-    public function __toString() : string
+    public function __toString(): string
     {
         return $this->toString();
     }
 
-    public function toString() : string
+    public function toString(): string
     {
         $uri = '';
         // weak type checks to also accept null until we can add scalar type hints
@@ -123,7 +123,7 @@ class Uri implements \Psr\Http\Message\UriInterface
         return $uri;
     }
 
-    public function getAuthority() : string
+    public function getAuthority(): string
     {
         $authority = $this->host;
         if ($this->userInfo !== '') {
@@ -135,17 +135,17 @@ class Uri implements \Psr\Http\Message\UriInterface
         return $authority;
     }
 
-    public function getFragment() : string
+    public function getFragment(): string
     {
         return $this->fragment;
     }
 
-    public function getHost() : string
+    public function getHost(): string
     {
         return $this->host;
     }
 
-    public function getPath() : string
+    public function getPath(): string
     {
         return $this->path;
     }
@@ -155,17 +155,17 @@ class Uri implements \Psr\Http\Message\UriInterface
         return $this->port;
     }
 
-    public function getQuery() : string
+    public function getQuery(): string
     {
         return $this->query;
     }
 
-    public function getScheme() : string
+    public function getScheme(): string
     {
         return $this->scheme;
     }
 
-    public function getUserInfo() : string
+    public function getUserInfo(): string
     {
         return $this->userInfo;
     }
@@ -175,7 +175,7 @@ class Uri implements \Psr\Http\Message\UriInterface
         return $this->immutable;
     }
 
-    public function withFragment($fragment) : self
+    public function withFragment($fragment): self
     {
         $new = $this;
         if ($this->getImmutable()) {
@@ -187,7 +187,7 @@ class Uri implements \Psr\Http\Message\UriInterface
         return $new;
     }
 
-    public function withHost($host) : self
+    public function withHost($host): self
     {
         $new = $this;
         if ($this->getImmutable()) {
@@ -199,7 +199,7 @@ class Uri implements \Psr\Http\Message\UriInterface
         return $new;
     }
 
-    public function withPath($path) : self
+    public function withPath($path): self
     {
         $new = $this;
         if ($this->getImmutable()) {
@@ -211,7 +211,7 @@ class Uri implements \Psr\Http\Message\UriInterface
         return $new;
     }
 
-    public function withPort($port) : self
+    public function withPort($port): self
     {
         $new = $this;
         if ($this->getImmutable()) {
@@ -223,7 +223,7 @@ class Uri implements \Psr\Http\Message\UriInterface
         return $new;
     }
 
-    public function withQuery($query) : self
+    public function withQuery($query): self
     {
         $new = $this;
         if ($this->getImmutable()) {
@@ -235,7 +235,7 @@ class Uri implements \Psr\Http\Message\UriInterface
         return $new;
     }
 
-    public function buildQuery(array $array) : self
+    public function buildQuery(array $array): self
     {
         $new = $this;
         if ($this->getImmutable()) {
@@ -247,7 +247,7 @@ class Uri implements \Psr\Http\Message\UriInterface
         return $new;
     }
 
-    public function withScheme($scheme) : self
+    public function withScheme($scheme): self
     {
         $new = $this;
         if ($this->getImmutable()) {
@@ -259,7 +259,7 @@ class Uri implements \Psr\Http\Message\UriInterface
         return $new;
     }
 
-    public function withUserInfo($user, $password = null) : self
+    public function withUserInfo($user, $password = null): self
     {
         $new = $this;
         if ($this->getImmutable()) {
@@ -325,5 +325,4 @@ class Uri implements \Psr\Http\Message\UriInterface
 
         return $new;
     }
-
 }

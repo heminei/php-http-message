@@ -95,24 +95,24 @@ class Response extends Message implements \Psr\Http\Message\ResponseInterface
         parent::__construct($headers, $body, $protocolVersion);
     }
 
-    public function getReasonPhrase() : string
+    public function getReasonPhrase(): string
     {
         return $this->reasonPhrase;
     }
 
-    public function getStatusCode() : int
+    public function getStatusCode(): int
     {
         return $this->statusCode;
     }
 
-    public function withStatus($code, $reasonPhrase = '') : self
+    public function withStatus($code, $reasonPhrase = ''): self
     {
         $new = $this;
         if ($this->getImmutable()) {
             $new = clone $this;
         }
 
-        $new->statusCode = (int)$code;
+        $new->statusCode = (int) $code;
         if ($reasonPhrase == '' && isset(self::$phrases[$new->statusCode])) {
             $reasonPhrase = self::$phrases[$new->statusCode];
         }
@@ -128,7 +128,6 @@ class Response extends Message implements \Psr\Http\Message\ResponseInterface
             header($name . ": " . implode(", ", $value), true);
         }
 
-        echo (string)$this->getBody();
+        echo (string) $this->getBody();
     }
-
 }

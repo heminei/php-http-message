@@ -44,12 +44,12 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
         return $this->attributes[$name];
     }
 
-    public function getAttributes() : array
+    public function getAttributes(): array
     {
         return $this->attributes;
     }
 
-    public function getCookieParams() : array
+    public function getCookieParams(): array
     {
         return $this->cookieParams;
     }
@@ -77,7 +77,7 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
         return $this->parsedBody[$name];
     }
 
-    public function getQueryParams() : array
+    public function getQueryParams(): array
     {
         return $this->queryParams;
     }
@@ -91,7 +91,7 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
         return $this->queryParams[$name];
     }
 
-    public function getServerParams() : array
+    public function getServerParams(): array
     {
         return $this->serverParams;
     }
@@ -105,7 +105,7 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
         return $this->serverParams[$name];
     }
 
-    public function getUploadedFiles() : array
+    public function getUploadedFiles(): array
     {
         return $this->uploadedFiles;
     }
@@ -125,7 +125,7 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
         return $this->uploadedFiles[$name];
     }
 
-    public function withAttribute($name, $value) : self
+    public function withAttribute($name, $value): self
     {
         $new = $this;
         if ($this->getImmutable()) {
@@ -137,7 +137,7 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
         return $new;
     }
 
-    public function withCookieParams(array $cookies) : self
+    public function withCookieParams(array $cookies): self
     {
         $new = $this;
         if ($this->getImmutable()) {
@@ -148,7 +148,7 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
         return $new;
     }
 
-    public function withParsedBody($data) : self
+    public function withParsedBody($data): self
     {
         $new = $this;
         if ($this->getImmutable()) {
@@ -159,7 +159,7 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
         return $new;
     }
 
-    public function withQueryParams(array $query) : self
+    public function withQueryParams(array $query): self
     {
         $new = $this;
         if ($this->getImmutable()) {
@@ -170,7 +170,7 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
         return $new;
     }
 
-    public function withUploadedFiles(array $uploadedFiles) : self
+    public function withUploadedFiles(array $uploadedFiles): self
     {
         $new = $this;
         if ($this->getImmutable()) {
@@ -182,7 +182,7 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
         return $new;
     }
 
-    public function withoutAttribute($name) : self
+    public function withoutAttribute($name): self
     {
         if (array_key_exists($name, $this->attributes) === false) {
             return $this;
@@ -206,7 +206,7 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
                         return $ip;
                     }
                 }
-                foreach (explode(',', $this->getHeader($key)) as $ip) {
+                foreach ($this->getHeader($key) as $ip) {
                     if (filter_var($ip, FILTER_VALIDATE_IP) !== false) {
                         return $ip;
                     }
@@ -217,7 +217,7 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
         return $this->getServerParam("REMOTE_ADDR");
     }
 
-    public function fromGlobals() : self
+    public function fromGlobals(): self
     {
         $new = $this;
         if ($this->getImmutable()) {
@@ -225,7 +225,7 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
         }
 
         $method = isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : 'GET';
-        if (function_exists('getallheaderasdsa')) {
+        if (function_exists('getallheaders')) {
             $headers = getallheaders();
         } else {
             $headers = [];
@@ -312,9 +312,11 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
                 continue;
             }
             $isArray = false;
-            if (preg_match("/(.*)\[\]$/", $contentDisposition['name']) === 1) {
+
+            $keyMatch = [];
+            if (preg_match("/(.*)\[(?<key>.*)\]$/", $contentDisposition['name'], $keyMatch) === 1) {
                 $isArray = true;
-                $contentDisposition['name'] = rtrim($contentDisposition['name'], "[]");
+                $contentDisposition['name'] = rtrim($contentDisposition['name'], "[" . $keyMatch['key'] . "]");
             }
 
             $value = preg_replace('/Content-(.*)[\n|\n\r]+/', '', $block);
@@ -336,7 +338,11 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
                     if (!isset($files[$contentDisposition['name']])) {
                         $files[$contentDisposition['name']] = [];
                     }
-                    $files[$contentDisposition['name']][] = $uploadedFile;
+                    if (empty($keyMatch['key'])) {
+                        $files[$contentDisposition['name']][] = $uploadedFile;
+                    } else {
+                        $files[$contentDisposition['name']][$keyMatch['key']] = $uploadedFile;
+                    }
                 } else {
                     $files[$contentDisposition['name']] = $uploadedFile;
                 }
@@ -345,7 +351,11 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
                     if (!isset($params[$contentDisposition['name']])) {
                         $params[$contentDisposition['name']] = [];
                     }
-                    $params[$contentDisposition['name']][] = $value;
+                    if (empty($keyMatch['key'])) {
+                        $params[$contentDisposition['name']][] = $value;
+                    } else {
+                        $params[$contentDisposition['name']][$keyMatch['key']] = $value;
+                    }
                 } else {
                     $params[$contentDisposition['name']] = $value;
                 }
@@ -357,5 +367,4 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
             "params" => $params,
         ];
     }
-
 }

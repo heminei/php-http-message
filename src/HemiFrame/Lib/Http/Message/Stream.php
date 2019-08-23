@@ -55,18 +55,18 @@ class Stream implements \Psr\Http\Message\StreamInterface
         $this->close();
     }
 
-    public function __toString() : string
+    public function __toString(): string
     {
         return $this->toString();
     }
 
-    public function toString() : string
+    public function toString(): string
     {
         $this->seek(0);
         return $this->getContents();
     }
 
-    public function close() : void
+    public function close(): void
     {
         if (isset($this->stream)) {
             if (is_resource($this->stream)) {
@@ -93,7 +93,7 @@ class Stream implements \Psr\Http\Message\StreamInterface
         return $result;
     }
 
-    public function eof() : bool
+    public function eof(): bool
     {
         if (!isset($this->stream)) {
             throw new \RuntimeException('Stream is detached');
@@ -101,7 +101,7 @@ class Stream implements \Psr\Http\Message\StreamInterface
         return feof($this->stream);
     }
 
-    public function getContents() : string
+    public function getContents(): string
     {
         if (!isset($this->stream)) {
             throw new \RuntimeException('Stream is detached');
@@ -145,22 +145,22 @@ class Stream implements \Psr\Http\Message\StreamInterface
         return null;
     }
 
-    public function isReadable() : bool
+    public function isReadable(): bool
     {
         return $this->isReadable;
     }
 
-    public function isSeekable() : bool
+    public function isSeekable(): bool
     {
         return $this->isSeekable;
     }
 
-    public function isWritable() : bool
+    public function isWritable(): bool
     {
         return $this->isWritable;
     }
 
-    public function read($length) : string
+    public function read($length): string
     {
         if (!isset($this->stream)) {
             throw new \RuntimeException('Stream is detached');
@@ -200,7 +200,7 @@ class Stream implements \Psr\Http\Message\StreamInterface
         }
     }
 
-    public function tell() : int
+    public function tell(): int
     {
         if (!isset($this->stream)) {
             throw new \RuntimeException('Stream is detached');
@@ -212,7 +212,7 @@ class Stream implements \Psr\Http\Message\StreamInterface
         return $result;
     }
 
-    public function write($string) : int
+    public function write($string): int
     {
         if (!isset($this->stream)) {
             throw new \RuntimeException('Stream is detached');
@@ -228,5 +228,4 @@ class Stream implements \Psr\Http\Message\StreamInterface
         }
         return $result;
     }
-
 }
