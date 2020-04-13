@@ -307,9 +307,9 @@ class Uri implements \Psr\Http\Message\UriInterface
         } elseif (isset($_SERVER['SERVER_ADDR'])) {
             $new = $new->withHost($_SERVER['SERVER_ADDR']);
         }
-        if (!$hasPort && isset($_SERVER['SERVER_PORT'])) {
-            $new = $new->withPort($_SERVER['SERVER_PORT']);
-        }
+        // if (!$hasPort && isset($_SERVER['SERVER_PORT'])) {
+        //     $new = $new->withPort($_SERVER['SERVER_PORT']);
+        // }
         $hasQuery = false;
         if (isset($_SERVER['REQUEST_URI'])) {
             $requestUriParts = explode('?', $_SERVER['REQUEST_URI'], 2);
