@@ -219,6 +219,7 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
 
     public function fromGlobals(): self
     {
+        /** @var ServerRequest $new */
         $new = $this;
         if ($this->getImmutable()) {
             $new = clone $this;

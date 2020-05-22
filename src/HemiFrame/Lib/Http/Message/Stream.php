@@ -86,9 +86,9 @@ class Stream implements \Psr\Http\Message\StreamInterface
 
         $this->size = null;
         $this->uri = null;
-        $this->readable = false;
-        $this->writable = false;
-        $this->seekable = false;
+        $this->isReadable = false;
+        $this->isWritable = false;
+        $this->isSeekable = false;
 
         return $result;
     }

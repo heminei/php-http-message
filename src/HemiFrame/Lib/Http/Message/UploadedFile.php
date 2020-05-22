@@ -9,7 +9,7 @@ class UploadedFile implements \Psr\Http\Message\UploadedFileInterface
 {
 
     /**
-     * @var StreamInterface|null
+     * @var \Psr\Http\Message\StreamInterface|null
      */
     private $stream;
 

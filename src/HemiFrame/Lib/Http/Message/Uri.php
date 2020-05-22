@@ -300,7 +300,7 @@ class Uri implements \Psr\Http\Message\UriInterface
             $new = $new->withHost($hostHeaderParts[0]);
             if (isset($hostHeaderParts[1])) {
                 $hasPort = true;
-                $new = $new->withPort($hostHeaderParts[1]);
+                $new = $new->withPort((int) $hostHeaderParts[1]);
             }
         } elseif (isset($_SERVER['SERVER_NAME'])) {
             $new = $new->withHost($_SERVER['SERVER_NAME']);

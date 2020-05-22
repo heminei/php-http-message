@@ -31,7 +31,7 @@ class Message implements \Psr\Http\Message\MessageInterface
     /**
      *
      * @param array $headers
-     * @param \HemiFrame\Lib\Http\Message\Stream||string $body
+     * @param \HemiFrame\Lib\Http\Message\Stream|string $body
      * @param string $protocolVersion
      */
     public function __construct(array $headers = [], $body = null, string $protocolVersion = '1.1')
@@ -150,7 +150,7 @@ class Message implements \Psr\Http\Message\MessageInterface
             $new = clone $this;
         }
 
-        array_walk($new->headers, function (&$item, $key) use ($name, $value) {
+        array_walk($new->headers, function (&$item, $key) use ($name) {
             if (strtolower($key) == strtolower($name)) {
                 unset($item);
             }

@@ -26,14 +26,14 @@ class Request extends Message implements \Psr\Http\Message\RequestInterface
     /**
      *
      * @param string $method
-     * @param \HemiFrame\Lib\Http\Message\UriInterface|string $uri
+     * @param \Psr\Http\Message\UriInterface|string $uri
      * @param array $headers
      * @param Stream|string $body
      * @param string $protocolVersion
      */
     public function __construct(string $method = "GET", $uri = "", array $headers = array(), $body = null, string $protocolVersion = '1.1')
     {
-        if (!($uri instanceof UriInterface)) {
+        if (!($uri instanceof \Psr\Http\Message\UriInterface)) {
             $uri = new Uri($uri);
         }
         $this->method = strtoupper($method);
@@ -82,7 +82,7 @@ class Request extends Message implements \Psr\Http\Message\RequestInterface
     public function withRequestTarget($requestTarget): self
     {
         if (preg_match('#\s#', $requestTarget)) {
-            throw new InvalidArgumentException('Invalid request target provided; cannot contain whitespace');
+            throw new \InvalidArgumentException('Invalid request target provided; cannot contain whitespace');
         }
 
         $new = $this;
