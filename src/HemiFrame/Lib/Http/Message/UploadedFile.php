@@ -58,8 +58,12 @@ class UploadedFile implements \Psr\Http\Message\UploadedFileInterface
             $this->clientMediaType = mime_content_type($streamOrFile);
         } elseif (is_resource($streamOrFile)) {
             $this->stream = new Stream($streamOrFile);
+            $this->clientFilename = basename($this->getStream()->getMetadata('uri'));
+            $this->clientMediaType = mime_content_type($this->getStream()->getMetadata('uri'));
         } elseif ($streamOrFile instanceof \Psr\Http\Message\StreamInterface) {
             $this->stream = $streamOrFile;
+            $this->clientFilename = basename($this->getStream()->getMetadata('uri'));
+            $this->clientMediaType = mime_content_type($this->getStream()->getMetadata('uri'));
         } else {
             throw new \InvalidArgumentException('Invalid stream or file provided for UploadedFile');
         }

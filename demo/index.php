@@ -14,8 +14,6 @@ $serverRequest->fromGlobals();
 
 $asd = $serverRequest->getHeaderLine("User-agent");
 
-var_dump($asd);
-
 $response->withHeader("Api-Key", "101010");
 $response->getBody()->write("asdasd");
 
