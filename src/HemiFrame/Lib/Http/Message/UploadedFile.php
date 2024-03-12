@@ -7,7 +7,6 @@ namespace HemiFrame\Lib\Http\Message;
  */
 class UploadedFile implements \Psr\Http\Message\UploadedFileInterface
 {
-
     /**
      * @var \Psr\Http\Message\StreamInterface|null
      */
@@ -33,27 +32,13 @@ class UploadedFile implements \Psr\Http\Message\UploadedFileInterface
      */
     private $error;
 
-    /**
-     * @var int[]
-     */
-    private static $errors = [
-        UPLOAD_ERR_OK,
-        UPLOAD_ERR_INI_SIZE,
-        UPLOAD_ERR_FORM_SIZE,
-        UPLOAD_ERR_PARTIAL,
-        UPLOAD_ERR_NO_FILE,
-        UPLOAD_ERR_NO_TMP_DIR,
-        UPLOAD_ERR_CANT_WRITE,
-        UPLOAD_ERR_EXTENSION,
-    ];
-
     public function __construct($streamOrFile, $clientFilename = null, $clientMediaType = null, $error = UPLOAD_ERR_OK)
     {
         if (is_string($streamOrFile)) {
             if (!file_exists($streamOrFile)) {
-                throw new \InvalidArgumentException('Invalid file provided for UploadedFile. File not exists: ' . $streamOrFile);
+                throw new \InvalidArgumentException('Invalid file provided for UploadedFile. File not exists: '.$streamOrFile);
             }
-            $this->stream = new Stream(fopen($streamOrFile, "r+"));
+            $this->stream = new Stream(fopen($streamOrFile, 'r+'));
             $this->clientFilename = basename($streamOrFile);
             $this->clientMediaType = mime_content_type($streamOrFile);
         } elseif (is_resource($streamOrFile)) {
@@ -68,10 +53,10 @@ class UploadedFile implements \Psr\Http\Message\UploadedFileInterface
             throw new \InvalidArgumentException('Invalid stream or file provided for UploadedFile');
         }
 
-        if ($clientFilename !== null) {
+        if (null !== $clientFilename) {
             $this->clientFilename = $clientFilename;
         }
-        if ($clientMediaType !== null) {
+        if (null !== $clientMediaType) {
             $this->clientMediaType = $clientMediaType;
         }
         if (!is_int($error)) {
@@ -82,12 +67,12 @@ class UploadedFile implements \Psr\Http\Message\UploadedFileInterface
         $this->size = $this->stream->getSize();
     }
 
-    public function getClientFilename()
+    public function getClientFilename(): ?string
     {
         return $this->clientFilename;
     }
 
-    public function getClientMediaType()
+    public function getClientMediaType(): ?string
     {
         return $this->clientMediaType;
     }
@@ -97,7 +82,7 @@ class UploadedFile implements \Psr\Http\Message\UploadedFileInterface
         return $this->error;
     }
 
-    public function getSize()
+    public function getSize(): ?int
     {
         return $this->size;
     }
@@ -107,7 +92,7 @@ class UploadedFile implements \Psr\Http\Message\UploadedFileInterface
         return $this->stream;
     }
 
-    public function moveTo($targetPath)
+    public function moveTo($targetPath): void
     {
         if (empty($targetPath) || !is_string($targetPath)) {
             throw new \InvalidArgumentException('Invalid path provided for move operation; must be a non-empty string');
@@ -118,7 +103,7 @@ class UploadedFile implements \Psr\Http\Message\UploadedFileInterface
             throw new \InvalidArgumentException('Invalid path provided for move operation; must be a writable');
         }
 
-        $stream = new Stream(fopen($targetPath, "w"));
+        $stream = new Stream(fopen($targetPath, 'w'));
         $stream->write((string) $this->getStream());
         $stream->close();
     }

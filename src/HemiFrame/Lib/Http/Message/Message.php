@@ -7,7 +7,6 @@ namespace HemiFrame\Lib\Http\Message;
  */
 class Message implements \Psr\Http\Message\MessageInterface
 {
-
     /**
      * @var \Psr\Http\Message\StreamInterface
      */
@@ -29,10 +28,7 @@ class Message implements \Psr\Http\Message\MessageInterface
     private $immutable = true;
 
     /**
-     *
-     * @param array $headers
-     * @param \HemiFrame\Lib\Http\Message\Stream|string $body
-     * @param string $protocolVersion
+     * @param Stream|string $body
      */
     public function __construct(array $headers = [], $body = null, string $protocolVersion = '1.1')
     {
@@ -40,10 +36,10 @@ class Message implements \Psr\Http\Message\MessageInterface
             $this->headers = $headers;
         }
         $this->body = new Stream();
-        if ($body !== null) {
-            if (is_string($this->body)) {
+        if (null !== $body) {
+            if (is_string($body)) {
                 $this->body->write($body);
-            } else if ($body instanceof Stream) {
+            } elseif ($body instanceof Stream) {
                 $this->body = $body;
             }
         }
@@ -64,6 +60,7 @@ class Message implements \Psr\Http\Message\MessageInterface
                 return $value;
             }
         }
+
         return [];
     }
 
@@ -122,11 +119,6 @@ class Message implements \Psr\Http\Message\MessageInterface
         return $new;
     }
 
-    /**
-     *
-     * @param \Psr\Http\Message\StreamInterface $body
-     * @return self
-     */
     public function withBody(\Psr\Http\Message\StreamInterface $body): self
     {
         $new = $this;

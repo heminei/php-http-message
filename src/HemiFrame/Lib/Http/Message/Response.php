@@ -7,7 +7,6 @@ namespace HemiFrame\Lib\Http\Message;
  */
 class Response extends Message implements \Psr\Http\Message\ResponseInterface
 {
-
     /** @var array Map of standard HTTP status code/reason phrases */
     private static $phrases = [
         100 => 'Continue',
@@ -81,14 +80,9 @@ class Response extends Message implements \Psr\Http\Message\ResponseInterface
     private $statusCode = 200;
 
     /**
-     *
-     * @param int $statusCode
-     * @param string $reasonPhrase
-     * @param array $headers
      * @param Stream|string $body
-     * @param string $protocolVersion
      */
-    public function __construct(int $statusCode = 200, string $reasonPhrase = "", array $headers = array(), $body = null, string $protocolVersion = '1.1')
+    public function __construct(int $statusCode = 200, string $reasonPhrase = '', array $headers = [], $body = null, string $protocolVersion = '1.1')
     {
         $this->statusCode = $statusCode;
         $this->reasonPhrase = $reasonPhrase;
@@ -113,19 +107,20 @@ class Response extends Message implements \Psr\Http\Message\ResponseInterface
         }
 
         $new->statusCode = (int) $code;
-        if ($reasonPhrase == '' && isset(self::$phrases[$new->statusCode])) {
+        if ('' == $reasonPhrase && isset(self::$phrases[$new->statusCode])) {
             $reasonPhrase = self::$phrases[$new->statusCode];
         }
         $new->reasonPhrase = $reasonPhrase;
+
         return $new;
     }
 
     public function send()
     {
-        header("HTTP/" . $this->getProtocolVersion() . " " . $this->getStatusCode() . " " . $this->getReasonPhrase(), true, $this->getStatusCode());
+        header('HTTP/'.$this->getProtocolVersion().' '.$this->getStatusCode().' '.$this->getReasonPhrase(), true, $this->getStatusCode());
 
         foreach ($this->getHeaders() as $name => $value) {
-            header($name . ": " . implode(", ", $value), true);
+            header($name.': '.implode(', ', $value), true);
         }
 
         echo (string) $this->getBody();

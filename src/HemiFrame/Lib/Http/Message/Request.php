@@ -7,14 +7,13 @@ namespace HemiFrame\Lib\Http\Message;
  */
 class Request extends Message implements \Psr\Http\Message\RequestInterface
 {
-
     /**
      * @var string
      */
-    private $method = "GET";
+    private $method = 'GET';
 
     /**
-     * @var null|string
+     * @var string|null
      */
     private $requestTarget;
 
@@ -24,14 +23,10 @@ class Request extends Message implements \Psr\Http\Message\RequestInterface
     private $uri;
 
     /**
-     *
-     * @param string $method
      * @param \Psr\Http\Message\UriInterface|string $uri
-     * @param array $headers
-     * @param Stream|string $body
-     * @param string $protocolVersion
+     * @param Stream|string                         $body
      */
-    public function __construct(string $method = "GET", $uri = "", array $headers = array(), $body = null, string $protocolVersion = '1.1')
+    public function __construct(string $method = 'GET', $uri = '', array $headers = [], $body = null, string $protocolVersion = '1.1')
     {
         if (!($uri instanceof \Psr\Http\Message\UriInterface)) {
             $uri = new Uri($uri);
@@ -49,16 +44,17 @@ class Request extends Message implements \Psr\Http\Message\RequestInterface
 
     public function getRequestTarget(): string
     {
-        if ($this->requestTarget !== null) {
+        if (null !== $this->requestTarget) {
             return $this->requestTarget;
         }
         $target = $this->uri->getPath();
-        if ($target == '') {
+        if ('' == $target) {
             $target = '/';
         }
-        if ($this->uri->getQuery() != '') {
-            $target .= '?' . $this->uri->getQuery();
+        if ('' != $this->uri->getQuery()) {
+            $target .= '?'.$this->uri->getQuery();
         }
+
         return $target;
     }
 
@@ -107,12 +103,12 @@ class Request extends Message implements \Psr\Http\Message\RequestInterface
         if (!$preserveHost) {
             $host = $new->uri->getHost();
             $port = $new->uri->getPort();
-            if ($port !== null) {
-                $host .= ':' . $port;
+            if (null !== $port) {
+                $host .= ':'.$port;
             }
 
-            if ($new->hasHeader("Host")) {
-                $new->withHeader("Host", $host);
+            if ($new->hasHeader('Host')) {
+                $new->withHeader('Host', $host);
             }
         }
 

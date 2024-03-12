@@ -4,7 +4,6 @@ namespace HemiFrame\Lib\Http\Message;
 
 class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestInterface
 {
-
     /**
      * @var array
      */
@@ -37,7 +36,7 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
 
     public function getAttribute($name, $default = null)
     {
-        if (array_key_exists($name, $this->attributes) === false) {
+        if (false === array_key_exists($name, $this->attributes)) {
             return $default;
         }
 
@@ -56,7 +55,7 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
 
     public function getCookieParam($name, $default = null)
     {
-        if (array_key_exists($name, $this->cookieParams) === false) {
+        if (false === array_key_exists($name, $this->cookieParams)) {
             return $default;
         }
 
@@ -70,7 +69,7 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
 
     public function getParsedBodyParam($name, $default = null)
     {
-        if (array_key_exists($name, $this->parsedBody) === false) {
+        if (false === array_key_exists($name, $this->parsedBody)) {
             return $default;
         }
 
@@ -84,7 +83,7 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
 
     public function getQueryParam($name, $default = null)
     {
-        if (array_key_exists($name, $this->queryParams) === false) {
+        if (false === array_key_exists($name, $this->queryParams)) {
             return $default;
         }
 
@@ -98,7 +97,7 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
 
     public function getServerParam($name, $default = null)
     {
-        if (array_key_exists($name, $this->serverParams) === false) {
+        if (false === array_key_exists($name, $this->serverParams)) {
             return $default;
         }
 
@@ -111,14 +110,13 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
     }
 
     /**
-     *
      * @param string $name
-     * @param mixed $default
+     *
      * @return UploadedFile|mixed
      */
     public function getUploadedFile($name, $default = null)
     {
-        if (array_key_exists($name, $this->uploadedFiles) === false) {
+        if (false === array_key_exists($name, $this->uploadedFiles)) {
             return $default;
         }
 
@@ -145,6 +143,7 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
         }
 
         $new->cookieParams = $cookies;
+
         return $new;
     }
 
@@ -156,6 +155,7 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
         }
 
         $new->parsedBody = $data;
+
         return $new;
     }
 
@@ -167,6 +167,7 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
         }
 
         $new->queryParams = $query;
+
         return $new;
     }
 
@@ -184,7 +185,7 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
 
     public function withoutAttribute($name): self
     {
-        if (array_key_exists($name, $this->attributes) === false) {
+        if (false === array_key_exists($name, $this->attributes)) {
             return $this;
         }
 
@@ -194,27 +195,28 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
         }
 
         unset($new->attributes[$name]);
+
         return $new;
     }
 
     public function getClientIP()
     {
-        foreach (array('CLIENT-IP', 'X-FORWARDED-FOR', 'X-FORWARDED', 'X-CLUSTER-CLIENT-IP', 'FORWARDED-FOR', 'FORWARDED') as $key) {
-            if ($this->hasHeader($key) === true) {
+        foreach (['CLIENT-IP', 'X-FORWARDED-FOR', 'X-FORWARDED', 'X-CLUSTER-CLIENT-IP', 'FORWARDED-FOR', 'FORWARDED'] as $key) {
+            if (true === $this->hasHeader($key)) {
                 foreach ($this->getHeader($key) as $ip) {
-                    if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) !== false) {
+                    if (false !== filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
                         return $ip;
                     }
                 }
                 foreach ($this->getHeader($key) as $ip) {
-                    if (filter_var($ip, FILTER_VALIDATE_IP) !== false) {
+                    if (false !== filter_var($ip, FILTER_VALIDATE_IP)) {
                         return $ip;
                     }
                 }
             }
         }
 
-        return $this->getServerParam("REMOTE_ADDR");
+        return $this->getServerParam('REMOTE_ADDR');
     }
 
     public function fromGlobals(): self
@@ -231,7 +233,7 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
         } else {
             $headers = [];
             foreach ($_SERVER as $name => $value) {
-                if (substr($name, 0, 5) == 'HTTP_') {
+                if ('HTTP_' == substr($name, 0, 5)) {
                     $headers[str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))))] = $value;
                 }
             }
@@ -247,7 +249,7 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
         $uri = new Uri();
         $uri = $uri->fromGlobals();
 
-        $body = new Stream(fopen("php://input", "r"));
+        $body = new Stream(fopen('php://input', 'r'));
         $protocolVersion = isset($_SERVER['SERVER_PROTOCOL']) ? str_replace('HTTP/', '', $_SERVER['SERVER_PROTOCOL']) : '1.1';
 
         $new->serverParams = $_SERVER;
@@ -259,14 +261,14 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
         $new = $new->withCookieParams($_COOKIE);
         $new = $new->withQueryParams($_GET);
 
-        if ($new->hasHeader("Content-Type") && strstr($new->getHeaderLine("Content-Type"), "application/json")) {
+        if ($new->hasHeader('Content-Type') && strstr($new->getHeaderLine('Content-Type'), 'application/json')) {
             $input = file_get_contents('php://input');
             $json = json_decode($input, true);
             if (is_array($json)) {
                 $new = $new->withParsedBody($json);
             }
-        } else if ($new->hasHeader("Content-Type") && strstr($new->getHeaderLine("Content-Type"), "multipart/form-data") && $new->getMethod() !== "POST") {
-            $multipartFormData = $new->parseMultipartFormData($body->getContents(), $new->getHeaderLine("Content-Type"));
+        } elseif ($new->hasHeader('Content-Type') && strstr($new->getHeaderLine('Content-Type'), 'multipart/form-data') && 'POST' !== $new->getMethod()) {
+            $multipartFormData = $new->parseMultipartFormData($body->getContents(), $new->getHeaderLine('Content-Type'));
             $new = $new->withParsedBody($multipartFormData['params']);
             $new = $new->withUploadedFiles($multipartFormData['files']);
         } else {
@@ -315,9 +317,9 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
             $isArray = false;
 
             $keyMatch = [];
-            if (preg_match("/(.*)\[(?<key>.*)\]$/", $contentDisposition['name'], $keyMatch) === 1) {
+            if (1 === preg_match("/(.*)\[(?<key>.*)\]$/", $contentDisposition['name'], $keyMatch)) {
                 $isArray = true;
-                $contentDisposition['name'] = rtrim($contentDisposition['name'], "[" . $keyMatch['key'] . "]");
+                $contentDisposition['name'] = rtrim($contentDisposition['name'], '['.$keyMatch['key'].']');
             }
 
             $value = preg_replace('/Content-(.*)[\n|\n\r]+/', '', $block);
@@ -364,8 +366,8 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
         }
 
         return [
-            "files" => $files,
-            "params" => $params,
+            'files' => $files,
+            'params' => $params,
         ];
     }
 }

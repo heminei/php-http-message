@@ -7,39 +7,38 @@ namespace HemiFrame\Lib\Http\Message;
  */
 class Uri implements \Psr\Http\Message\UriInterface
 {
-
     /**
-     * @var string Uri scheme.
+     * @var string uri scheme
      */
     private $scheme = '';
 
     /**
-     * @var string Uri user info.
+     * @var string uri user info
      */
     private $userInfo = '';
 
     /**
-     * @var string Uri host.
+     * @var string uri host
      */
     private $host = '';
 
     /**
-     * @var int|null Uri port.
+     * @var int|null uri port
      */
     private $port;
 
     /**
-     * @var string Uri path.
+     * @var string uri path
      */
     private $path = '';
 
     /**
-     * @var string Uri query string.
+     * @var string uri query string
      */
     private $query = '';
 
     /**
-     * @var string Uri fragment.
+     * @var string uri fragment
      */
     private $fragment = '';
 
@@ -49,7 +48,6 @@ class Uri implements \Psr\Http\Message\UriInterface
     private $immutable = true;
 
     /**
-     *
      * @var array
      */
     private static $defaultPorts = [
@@ -66,9 +64,9 @@ class Uri implements \Psr\Http\Message\UriInterface
         'ldap' => 389,
     ];
 
-    public function __construct(string $uri = "")
+    public function __construct(string $uri = '')
     {
-        if ($uri !== "") {
+        if ('' !== $uri) {
             $parts = parse_url($uri);
 
             if (isset($parts['scheme'])) {
@@ -93,7 +91,7 @@ class Uri implements \Psr\Http\Message\UriInterface
                 $this->userInfo = $parts['user'];
             }
             if (isset($parts['pass'])) {
-                $this->userInfo .= ":" . $parts['pass'];
+                $this->userInfo .= ':'.$parts['pass'];
             }
         }
     }
@@ -107,31 +105,33 @@ class Uri implements \Psr\Http\Message\UriInterface
     {
         $uri = '';
         // weak type checks to also accept null until we can add scalar type hints
-        if ($this->scheme != '') {
-            $uri .= $this->scheme . ':';
+        if ('' != $this->scheme) {
+            $uri .= $this->scheme.':';
         }
-        if ($this->getAuthority() != '' || $this->scheme === 'file') {
-            $uri .= '//' . $this->getAuthority();
+        if ('' != $this->getAuthority() || 'file' === $this->scheme) {
+            $uri .= '//'.$this->getAuthority();
         }
         $uri .= $this->path;
-        if ($this->query != '') {
-            $uri .= '?' . $this->query;
+        if ('' != $this->query) {
+            $uri .= '?'.$this->query;
         }
-        if ($this->fragment != '') {
-            $uri .= '#' . $this->fragment;
+        if ('' != $this->fragment) {
+            $uri .= '#'.$this->fragment;
         }
+
         return $uri;
     }
 
     public function getAuthority(): string
     {
         $authority = $this->host;
-        if ($this->userInfo !== '') {
-            $authority = $this->userInfo . '@' . $authority;
+        if ('' !== $this->userInfo) {
+            $authority = $this->userInfo.'@'.$authority;
         }
-        if ($this->port !== null && self::$defaultPorts[$this->scheme] != $this->port) {
-            $authority .= ':' . $this->port;
+        if (null !== $this->port && self::$defaultPorts[$this->scheme] != $this->port) {
+            $authority .= ':'.$this->port;
         }
+
         return $authority;
     }
 
@@ -150,7 +150,7 @@ class Uri implements \Psr\Http\Message\UriInterface
         return $this->path;
     }
 
-    public function getPort()
+    public function getPort(): ?int
     {
         return $this->port;
     }
@@ -267,8 +267,8 @@ class Uri implements \Psr\Http\Message\UriInterface
         }
 
         $userInfo = $user;
-        if ($password != '') {
-            $userInfo .= ':' . $password;
+        if ('' != $password) {
+            $userInfo .= ':'.$password;
         }
         $new->userInfo = $userInfo;
 
@@ -284,6 +284,7 @@ class Uri implements \Psr\Http\Message\UriInterface
 
     /**
      * Get a Uri populated with values from $_SERVER.
+     *
      * @return self
      */
     public function fromGlobals()
@@ -293,7 +294,7 @@ class Uri implements \Psr\Http\Message\UriInterface
             $new = clone $this;
         }
 
-        $new = $new->withScheme(!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https' : 'http');
+        $new = $new->withScheme(!empty($_SERVER['HTTPS']) && 'off' !== $_SERVER['HTTPS'] ? 'https' : 'http');
         $hasPort = false;
         if (isset($_SERVER['HTTP_HOST'])) {
             $hostHeaderParts = explode(':', $_SERVER['HTTP_HOST']);

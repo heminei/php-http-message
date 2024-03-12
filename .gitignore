@@ -1,5 +1,5 @@
-/nbproject/private/
 /vendor/
+/.php-cs-fixer.cache
 
 ### VisualStudioCode ###
 .vscode/*

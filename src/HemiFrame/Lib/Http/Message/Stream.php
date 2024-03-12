@@ -7,7 +7,6 @@ namespace HemiFrame\Lib\Http\Message;
  */
 class Stream implements \Psr\Http\Message\StreamInterface
 {
-
     private $stream;
     private $isReadable;
     private $isSeekable;
@@ -23,21 +22,21 @@ class Stream implements \Psr\Http\Message\StreamInterface
             'r' => true, 'w+' => true, 'r+' => true, 'x+' => true, 'c+' => true,
             'rb' => true, 'w+b' => true, 'r+b' => true, 'x+b' => true,
             'c+b' => true, 'rt' => true, 'w+t' => true, 'r+t' => true,
-            'x+t' => true, 'c+t' => true, 'a+' => true
+            'x+t' => true, 'c+t' => true, 'a+' => true,
         ],
         'write' => [
             'w' => true, 'w+' => true, 'rw' => true, 'r+' => true, 'x+' => true,
             'c+' => true, 'wb' => true, 'w+b' => true, 'r+b' => true,
             'x+b' => true, 'c+b' => true, 'w+t' => true, 'r+t' => true,
-            'x+t' => true, 'c+t' => true, 'a' => true, 'a+' => true
-        ]
+            'x+t' => true, 'c+t' => true, 'a' => true, 'a+' => true,
+        ],
     ];
 
     public function __construct($stream = null)
     {
-        if ($stream === null) {
+        if (null === $stream) {
             $this->stream = tmpfile();
-        } else if (is_resource($stream)) {
+        } elseif (is_resource($stream)) {
             $this->stream = $stream;
         } else {
             throw new \InvalidArgumentException('Stream must be a resource');
@@ -63,6 +62,7 @@ class Stream implements \Psr\Http\Message\StreamInterface
     public function toString(): string
     {
         $this->seek(0);
+
         return $this->getContents();
     }
 
@@ -98,6 +98,7 @@ class Stream implements \Psr\Http\Message\StreamInterface
         if (!isset($this->stream)) {
             throw new \RuntimeException('Stream is detached');
         }
+
         return feof($this->stream);
     }
 
@@ -107,9 +108,10 @@ class Stream implements \Psr\Http\Message\StreamInterface
             throw new \RuntimeException('Stream is detached');
         }
         $contents = stream_get_contents($this->stream);
-        if ($contents === false) {
+        if (false === $contents) {
             throw new \RuntimeException('Unable to read stream contents');
         }
+
         return $contents;
     }
 
@@ -121,12 +123,13 @@ class Stream implements \Psr\Http\Message\StreamInterface
             return stream_get_meta_data($this->stream);
         }
         $meta = stream_get_meta_data($this->stream);
+
         return isset($meta[$key]) ? $meta[$key] : null;
     }
 
-    public function getSize()
+    public function getSize(): ?int
     {
-        if ($this->size !== null) {
+        if (null !== $this->size) {
             return $this->size;
         }
         if (!isset($this->stream)) {
@@ -140,8 +143,10 @@ class Stream implements \Psr\Http\Message\StreamInterface
         $stats = fstat($this->stream);
         if (isset($stats['size'])) {
             $this->size = $stats['size'];
+
             return $this->size;
         }
+
         return null;
     }
 
@@ -171,22 +176,23 @@ class Stream implements \Psr\Http\Message\StreamInterface
         if ($length < 0) {
             throw new \RuntimeException('Length parameter cannot be negative');
         }
-        if ($length === 0) {
+        if (0 === $length) {
             return '';
         }
         $string = fread($this->stream, $length);
-        if ($string === false) {
+        if (false === $string) {
             throw new \RuntimeException('Unable to read from stream');
         }
+
         return $string;
     }
 
-    public function rewind()
+    public function rewind(): void
     {
         $this->seek(0);
     }
 
-    public function seek($offset, $whence = SEEK_SET)
+    public function seek($offset, $whence = SEEK_SET): void
     {
         if (!isset($this->stream)) {
             throw new \RuntimeException('Stream is detached');
@@ -194,9 +200,8 @@ class Stream implements \Psr\Http\Message\StreamInterface
         if (!$this->isSeekable) {
             throw new \RuntimeException('Stream is not seekable');
         }
-        if (fseek($this->stream, $offset, $whence) === -1) {
-            throw new \RuntimeException('Unable to seek to stream position '
-                . $offset . ' with whence ' . var_export($whence, true));
+        if (-1 === fseek($this->stream, $offset, $whence)) {
+            throw new \RuntimeException('Unable to seek to stream position '.$offset.' with whence '.var_export($whence, true));
         }
     }
 
@@ -206,9 +211,10 @@ class Stream implements \Psr\Http\Message\StreamInterface
             throw new \RuntimeException('Stream is detached');
         }
         $result = ftell($this->stream);
-        if ($result === false) {
+        if (false === $result) {
             throw new \RuntimeException('Unable to determine stream position');
         }
+
         return $result;
     }
 
@@ -223,9 +229,10 @@ class Stream implements \Psr\Http\Message\StreamInterface
         // We can't know the size after writing anything
         $this->size = null;
         $result = fwrite($this->stream, $string);
-        if ($result === false) {
+        if (false === $result) {
             throw new \RuntimeException('Unable to write to stream');
         }
+
         return $result;
     }
 }
