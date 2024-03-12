@@ -1,7 +1,7 @@
 {
     "name": "hemiframe/php-http-message",
     "description": "PHP Classes implement PSR-7 Interfaces",
-    "version": "1.2.0",
+    "version": "2.0.0",
     "keywords": [
         "HTTP message",
         "PSR-7",
