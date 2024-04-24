@@ -277,6 +277,9 @@ class ServerRequest extends Request implements \Psr\Http\Message\ServerRequestIn
             $uploadedFiles = [];
             foreach ($_FILES as $name => $file) {
                 if (is_string($file['tmp_name'])) {
+                    if (0 == strlen($file['tmp_name'])) {
+                        continue;
+                    }
                     $uploadedFiles[$name] = new UploadedFile($file['tmp_name'], $file['name'], $file['type'], $file['error']);
                 } else {
                     $uploadedFiles[$name] = [];
