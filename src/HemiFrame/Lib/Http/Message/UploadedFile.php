@@ -5,7 +5,7 @@ namespace HemiFrame\Lib\Http\Message;
 /**
  * @author heminei <heminei@heminei.com>
  */
-class UploadedFile implements \Psr\Http\Message\UploadedFileInterface
+class UploadedFile implements \Psr\Http\Message\UploadedFileInterface, \Stringable
 {
     /**
      * @var \Psr\Http\Message\StreamInterface|null
@@ -65,6 +65,14 @@ class UploadedFile implements \Psr\Http\Message\UploadedFileInterface
 
         $this->error = $error;
         $this->size = $this->stream->getSize();
+    }
+
+    /**
+     * Returns the path to the file as a string.
+     */
+    public function __toString(): string
+    {
+        return $this->getStream()->getMetadata('uri');
     }
 
     public function getClientFilename(): ?string
