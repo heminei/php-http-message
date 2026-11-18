@@ -8,34 +8,20 @@ namespace HemiFrame\Lib\Http\Message;
 class Stream implements \Psr\Http\Message\StreamInterface
 {
     private $stream;
-    private $isReadable;
-    private $isSeekable;
-    private $isWritable;
-    private $size;
-    private $uri;
-
-    /**
-     * @var array Hash of readable and writable stream types
-     */
-    private static $readWriteHash = [
-        'read' => [
-            'r' => true, 'w+' => true, 'r+' => true, 'x+' => true, 'c+' => true,
-            'rb' => true, 'w+b' => true, 'r+b' => true, 'x+b' => true,
-            'c+b' => true, 'rt' => true, 'w+t' => true, 'r+t' => true,
-            'x+t' => true, 'c+t' => true, 'a+' => true,
-        ],
-        'write' => [
-            'w' => true, 'w+' => true, 'rw' => true, 'r+' => true, 'x+' => true,
-            'c+' => true, 'wb' => true, 'w+b' => true, 'r+b' => true,
-            'x+b' => true, 'c+b' => true, 'w+t' => true, 'r+t' => true,
-            'x+t' => true, 'c+t' => true, 'a' => true, 'a+' => true,
-        ],
-    ];
+    private bool $isReadable;
+    private bool $isSeekable;
+    private bool $isWritable;
+    private ?int $size = null;
+    private ?string $uri = null;
 
     public function __construct($stream = null)
     {
         if (null === $stream) {
-            $this->stream = tmpfile();
+            $stream = tmpfile();
+            if (false === $stream) {
+                throw new \RuntimeException('Unable to create temporary stream');
+            }
+            $this->stream = $stream;
         } elseif (is_resource($stream)) {
             $this->stream = $stream;
         } else {
@@ -43,10 +29,11 @@ class Stream implements \Psr\Http\Message\StreamInterface
         }
 
         $meta = $this->getMetadata();
+        $mode = $meta['mode'];
         $this->isSeekable = $meta['seekable'];
-        $this->isReadable = isset(self::$readWriteHash['read'][$meta['mode']]);
-        $this->isWritable = isset(self::$readWriteHash['write'][$meta['mode']]);
-        $this->uri = $meta['uri'];
+        $this->isReadable = str_contains($mode, 'r') || str_contains($mode, '+');
+        $this->isWritable = false !== strpbrk($mode, 'waxc+');
+        $this->uri = $meta['uri'] ?? null;
     }
 
     public function __destruct()
@@ -61,9 +48,15 @@ class Stream implements \Psr\Http\Message\StreamInterface
 
     public function toString(): string
     {
-        $this->seek(0);
+        try {
+            if ($this->isSeekable()) {
+                $this->seek(0);
+            }
 
-        return $this->getContents();
+            return $this->getContents();
+        } catch (\Throwable) {
+            return '';
+        }
     }
 
     public function close(): void
@@ -107,6 +100,9 @@ class Stream implements \Psr\Http\Message\StreamInterface
         if (!isset($this->stream)) {
             throw new \RuntimeException('Stream is detached');
         }
+        if (!$this->isReadable) {
+            throw new \RuntimeException('Cannot read from non-readable stream');
+        }
         $contents = stream_get_contents($this->stream);
         if (false === $contents) {
             throw new \RuntimeException('Unable to read stream contents');
@@ -115,7 +111,7 @@ class Stream implements \Psr\Http\Message\StreamInterface
         return $contents;
     }
 
-    public function getMetadata($key = null)
+    public function getMetadata(?string $key = null)
     {
         if (!isset($this->stream)) {
             return isset($key) ? null : [];
@@ -165,7 +161,7 @@ class Stream implements \Psr\Http\Message\StreamInterface
         return $this->isWritable;
     }
 
-    public function read($length): string
+    public function read(int $length): string
     {
         if (!isset($this->stream)) {
             throw new \RuntimeException('Stream is detached');
@@ -192,7 +188,7 @@ class Stream implements \Psr\Http\Message\StreamInterface
         $this->seek(0);
     }
 
-    public function seek($offset, $whence = SEEK_SET): void
+    public function seek(int $offset, int $whence = SEEK_SET): void
     {
         if (!isset($this->stream)) {
             throw new \RuntimeException('Stream is detached');
@@ -218,7 +214,7 @@ class Stream implements \Psr\Http\Message\StreamInterface
         return $result;
     }
 
-    public function write($string): int
+    public function write(string $string): int
     {
         if (!isset($this->stream)) {
             throw new \RuntimeException('Stream is detached');

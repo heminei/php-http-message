@@ -7,50 +7,23 @@ namespace HemiFrame\Lib\Http\Message;
  */
 class Uri implements \Psr\Http\Message\UriInterface
 {
-    /**
-     * @var string uri scheme
-     */
-    private $scheme = '';
+    private string $scheme = '';
 
-    /**
-     * @var string uri user info
-     */
-    private $userInfo = '';
+    private string $userInfo = '';
 
-    /**
-     * @var string uri host
-     */
-    private $host = '';
+    private string $host = '';
 
-    /**
-     * @var int|null uri port
-     */
-    private $port;
+    private ?int $port = null;
 
-    /**
-     * @var string uri path
-     */
-    private $path = '';
+    private string $path = '';
 
-    /**
-     * @var string uri query string
-     */
-    private $query = '';
+    private string $query = '';
 
-    /**
-     * @var string uri fragment
-     */
-    private $fragment = '';
+    private string $fragment = '';
 
-    /**
-     * @var bool
-     */
-    private $immutable = true;
+    private bool $immutable = true;
 
-    /**
-     * @var array
-     */
-    private static $defaultPorts = [
+    private static array $defaultPorts = [
         'http' => 80,
         'https' => 443,
         'ftp' => 21,
@@ -64,34 +37,41 @@ class Uri implements \Psr\Http\Message\UriInterface
         'ldap' => 389,
     ];
 
+    private const CHAR_UNRESERVED = 'a-zA-Z0-9_\-\.~';
+
+    private const CHAR_SUB_DELIMS = '!\$&\'\(\)\*\+,;=';
+
     public function __construct(string $uri = '')
     {
         if ('' !== $uri) {
             $parts = parse_url($uri);
+            if (false === $parts) {
+                throw new \InvalidArgumentException('Unable to parse URI: '.$uri);
+            }
 
             if (isset($parts['scheme'])) {
-                $this->scheme = $parts['scheme'];
+                $this->scheme = self::toLower($parts['scheme']);
             }
             if (isset($parts['host'])) {
-                $this->host = $parts['host'];
+                $this->host = self::filterHost($parts['host']);
             }
             if (isset($parts['port'])) {
-                $this->port = $parts['port'];
+                $this->port = self::filterPort($parts['port']);
             }
             if (isset($parts['path'])) {
-                $this->path = $parts['path'];
+                $this->path = self::filterPath($parts['path']);
             }
             if (isset($parts['query'])) {
-                $this->query = $parts['query'];
+                $this->query = self::filterQueryOrFragment($parts['query']);
             }
             if (isset($parts['fragment'])) {
-                $this->fragment = $parts['fragment'];
+                $this->fragment = self::filterQueryOrFragment($parts['fragment']);
             }
             if (isset($parts['user'])) {
-                $this->userInfo = $parts['user'];
+                $this->userInfo = self::filterUserInfo($parts['user']);
             }
             if (isset($parts['pass'])) {
-                $this->userInfo .= ':'.$parts['pass'];
+                $this->userInfo .= ':'.self::filterUserInfo($parts['pass']);
             }
         }
     }
@@ -104,15 +84,22 @@ class Uri implements \Psr\Http\Message\UriInterface
     public function toString(): string
     {
         $uri = '';
-        // weak type checks to also accept null until we can add scalar type hints
-        if ('' != $this->scheme) {
+        if ('' !== $this->scheme) {
             $uri .= $this->scheme.':';
         }
-        if ('' != $this->getAuthority() || 'file' === $this->scheme) {
-            $uri .= '//'.$this->getAuthority();
+        $authority = $this->getAuthority();
+        $path = $this->path;
+        if ('' !== $authority || 'file' === $this->scheme) {
+            $uri .= '//'.$authority;
+            if ('' !== $path && '/' !== $path[0]) {
+                $path = '/'.$path;
+            }
+        } elseif (str_starts_with($path, '//')) {
+            // Without an authority a leading "//" would be read as one.
+            $path = '/'.ltrim($path, '/');
         }
-        $uri .= $this->path;
-        if ('' != $this->query) {
+        $uri .= $path;
+        if ('' !== $this->query) {
             $uri .= '?'.$this->query;
         }
         if ('' != $this->fragment) {
@@ -124,12 +111,17 @@ class Uri implements \Psr\Http\Message\UriInterface
 
     public function getAuthority(): string
     {
+        if ('' === $this->host) {
+            return '';
+        }
+
         $authority = $this->host;
         if ('' !== $this->userInfo) {
             $authority = $this->userInfo.'@'.$authority;
         }
-        if (null !== $this->port && self::$defaultPorts[$this->scheme] != $this->port) {
-            $authority .= ':'.$this->port;
+        $port = $this->getPort();
+        if (null !== $port) {
+            $authority .= ':'.$port;
         }
 
         return $authority;
@@ -152,6 +144,10 @@ class Uri implements \Psr\Http\Message\UriInterface
 
     public function getPort(): ?int
     {
+        if (null !== $this->port && (self::$defaultPorts[$this->scheme] ?? null) === $this->port) {
+            return null;
+        }
+
         return $this->port;
     }
 
@@ -170,49 +166,51 @@ class Uri implements \Psr\Http\Message\UriInterface
         return $this->userInfo;
     }
 
-    public function getImmutable()
+    public function getImmutable(): bool
     {
         return $this->immutable;
     }
 
-    public function withFragment($fragment): self
+    public function withFragment(string $fragment): self
     {
         $new = $this;
         if ($this->getImmutable()) {
             $new = clone $this;
         }
 
-        $new->fragment = $fragment;
+        $new->fragment = self::filterQueryOrFragment($fragment);
 
         return $new;
     }
 
-    public function withHost($host): self
+    public function withHost(string $host): self
     {
         $new = $this;
         if ($this->getImmutable()) {
             $new = clone $this;
         }
 
-        $new->host = $host;
+        $new->host = self::filterHost($host);
 
         return $new;
     }
 
-    public function withPath($path): self
+    public function withPath(string $path): self
     {
         $new = $this;
         if ($this->getImmutable()) {
             $new = clone $this;
         }
 
-        $new->path = $path;
+        $new->path = self::filterPath($path);
 
         return $new;
     }
 
-    public function withPort($port): self
+    public function withPort(?int $port): self
     {
+        $port = self::filterPort($port);
+
         $new = $this;
         if ($this->getImmutable()) {
             $new = clone $this;
@@ -223,14 +221,14 @@ class Uri implements \Psr\Http\Message\UriInterface
         return $new;
     }
 
-    public function withQuery($query): self
+    public function withQuery(string $query): self
     {
         $new = $this;
         if ($this->getImmutable()) {
             $new = clone $this;
         }
 
-        $new->query = $query;
+        $new->query = self::filterQueryOrFragment($query);
 
         return $new;
     }
@@ -247,35 +245,38 @@ class Uri implements \Psr\Http\Message\UriInterface
         return $new;
     }
 
-    public function withScheme($scheme): self
+    public function withScheme(string $scheme): self
     {
         $new = $this;
         if ($this->getImmutable()) {
             $new = clone $this;
         }
 
-        $new->scheme = $scheme;
+        $new->scheme = self::filterScheme($scheme);
 
         return $new;
     }
 
-    public function withUserInfo($user, $password = null): self
+    public function withUserInfo(string $user, ?string $password = null): self
     {
         $new = $this;
         if ($this->getImmutable()) {
             $new = clone $this;
         }
 
-        $userInfo = $user;
-        if ('' != $password) {
-            $userInfo .= ':'.$password;
+        $userInfo = self::filterUserInfo($user);
+        if (null !== $password && '' !== $password) {
+            $userInfo .= ':'.self::filterUserInfo($password);
         }
         $new->userInfo = $userInfo;
 
         return $new;
     }
 
-    public function setImmutable(bool $immutable)
+    /**
+     * @return static
+     */
+    public function setImmutable(bool $immutable): self
     {
         $this->immutable = $immutable;
 
@@ -284,10 +285,8 @@ class Uri implements \Psr\Http\Message\UriInterface
 
     /**
      * Get a Uri populated with values from $_SERVER.
-     *
-     * @return self
      */
-    public function fromGlobals()
+    public function fromGlobals(): self
     {
         $new = $this;
         if ($this->getImmutable()) {
@@ -295,25 +294,29 @@ class Uri implements \Psr\Http\Message\UriInterface
         }
 
         $new = $new->withScheme(!empty($_SERVER['HTTPS']) && 'off' !== $_SERVER['HTTPS'] ? 'https' : 'http');
-        $hasPort = false;
-        if (isset($_SERVER['HTTP_HOST'])) {
-            $hostHeaderParts = explode(':', $_SERVER['HTTP_HOST']);
-            $new = $new->withHost($hostHeaderParts[0]);
-            if (isset($hostHeaderParts[1])) {
-                $hasPort = true;
-                $new = $new->withPort((int) $hostHeaderParts[1]);
+        // Host with optional port; IPv6 addresses are enclosed in brackets.
+        if (isset($_SERVER['HTTP_HOST']) && 1 === preg_match('/^(?<host>\[[0-9a-fA-F:.]+\]|[a-zA-Z0-9\-._~!$&\'()*+,;=%\x80-\xFF]+)(?::(?<port>\d{1,5}))?$/D', $_SERVER['HTTP_HOST'], $hostMatch)) {
+            $new = $new->withHost($hostMatch['host']);
+            if (isset($hostMatch['port']) && (int) $hostMatch['port'] <= 65535) {
+                $new = $new->withPort((int) $hostMatch['port']);
             }
-        } elseif (isset($_SERVER['SERVER_NAME'])) {
-            $new = $new->withHost($_SERVER['SERVER_NAME']);
-        } elseif (isset($_SERVER['SERVER_ADDR'])) {
-            $new = $new->withHost($_SERVER['SERVER_ADDR']);
+        } elseif (isset($_SERVER['SERVER_NAME']) || isset($_SERVER['SERVER_ADDR'])) {
+            $host = (string) ($_SERVER['SERVER_NAME'] ?? $_SERVER['SERVER_ADDR']);
+            if (false !== filter_var($host, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
+                $host = '['.$host.']';
+            }
+            $new = $new->withHost($host);
+            // Without a Host header the port the client used is unknown, so the server port is the best guess.
+            $serverPort = (int) ($_SERVER['SERVER_PORT'] ?? 0);
+            if ($serverPort > 0 && $serverPort <= 65535) {
+                $new = $new->withPort($serverPort);
+            }
         }
-        // if (!$hasPort && isset($_SERVER['SERVER_PORT'])) {
-        //     $new = $new->withPort($_SERVER['SERVER_PORT']);
-        // }
         $hasQuery = false;
         if (isset($_SERVER['REQUEST_URI'])) {
-            $requestUriParts = explode('?', $_SERVER['REQUEST_URI'], 2);
+            // Absolute-form request targets (sent to proxies) include scheme and authority.
+            $requestUri = preg_replace('#^[a-zA-Z][a-zA-Z0-9+.\-]*://[^/?\#]*#', '', $_SERVER['REQUEST_URI']) ?? $_SERVER['REQUEST_URI'];
+            $requestUriParts = explode('?', $requestUri, 2);
             $new = $new->withPath($requestUriParts[0]);
             if (isset($requestUriParts[1])) {
                 $hasQuery = true;
@@ -325,5 +328,63 @@ class Uri implements \Psr\Http\Message\UriInterface
         }
 
         return $new;
+    }
+
+    private static function toLower(string $value): string
+    {
+        // ASCII only, independent of the current locale.
+        return strtr($value, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz');
+    }
+
+    private static function filterScheme(string $scheme): string
+    {
+        // RFC 3986: ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )
+        if ('' !== $scheme && 1 !== preg_match('/^[a-zA-Z][a-zA-Z0-9+\-.]*$/D', $scheme)) {
+            throw new \InvalidArgumentException('Invalid scheme: '.json_encode($scheme));
+        }
+
+        return self::toLower($scheme);
+    }
+
+    private static function filterHost(string $host): string
+    {
+        // reg-name (RFC 3986, plus non-ASCII bytes for internationalized names) or bracketed IP literal
+        if (1 !== preg_match('/^(?:\[[0-9a-fA-F:.]+(?:%25[a-zA-Z0-9\-._~%]+)?\]|[a-zA-Z0-9\-._~!$&\'()*+,;=%\x80-\xFF]*)$/D', $host)) {
+            throw new \InvalidArgumentException('Invalid host: '.json_encode($host));
+        }
+
+        return self::toLower($host);
+    }
+
+    private static function filterPort(?int $port): ?int
+    {
+        if (null !== $port && ($port < 0 || $port > 65535)) {
+            throw new \InvalidArgumentException('Invalid port: '.$port.'. Must be between 0 and 65535');
+        }
+
+        return $port;
+    }
+
+    private static function filterPath(string $path): string
+    {
+        return self::encode($path, '/(?:[^'.self::CHAR_UNRESERVED.self::CHAR_SUB_DELIMS.'%:@\/]++|%(?![A-Fa-f0-9]{2}))/');
+    }
+
+    private static function filterQueryOrFragment(string $value): string
+    {
+        return self::encode($value, '/(?:[^'.self::CHAR_UNRESERVED.self::CHAR_SUB_DELIMS.'%:@\/\?]++|%(?![A-Fa-f0-9]{2}))/');
+    }
+
+    private static function filterUserInfo(string $value): string
+    {
+        return self::encode($value, '/(?:[^'.self::CHAR_UNRESERVED.self::CHAR_SUB_DELIMS.'%]++|%(?![A-Fa-f0-9]{2}))/');
+    }
+
+    /**
+     * Percent-encodes characters matched by $pattern; existing %XX sequences are kept.
+     */
+    private static function encode(string $value, string $pattern): string
+    {
+        return preg_replace_callback($pattern, static fn (array $match): string => rawurlencode($match[0]), $value) ?? $value;
     }
 }

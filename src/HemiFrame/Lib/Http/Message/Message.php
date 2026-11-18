@@ -7,44 +7,37 @@ namespace HemiFrame\Lib\Http\Message;
  */
 class Message implements \Psr\Http\Message\MessageInterface
 {
-    /**
-     * @var \Psr\Http\Message\StreamInterface
-     */
-    private $body;
+    private \Psr\Http\Message\StreamInterface $body;
+
+    private array $headers = [];
+
+    private string $protocolVersion = '1.1';
+
+    private bool $immutable = true;
 
     /**
-     * @var array
-     */
-    private $headers = [];
-
-    /**
-     * @var string
-     */
-    private $protocolVersion = '1.1';
-
-    /**
-     * @var bool
-     */
-    private $immutable = true;
-
-    /**
-     * @param Stream|string $body
+     * @param array<array-key, string|int|float|array<string|int|float>> $headers header name => value(s); integer keys are rejected
+     * @param \Psr\Http\Message\StreamInterface|string|null              $body
      */
     public function __construct(array $headers = [], $body = null, string $protocolVersion = '1.1')
     {
-        if (!empty($headers)) {
-            $this->headers = $headers;
+        foreach ($headers as $name => $value) {
+            if (is_int($name)) {
+                throw new \InvalidArgumentException('Header names must be string array keys, e.g. ["Content-Type" => "text/html"]; use withHeader() for numeric names');
+            }
+            $this->addHeader($name, $value);
         }
-        $this->body = new Stream();
-        if (null !== $body) {
-            if (is_string($body)) {
+        if ($body instanceof \Psr\Http\Message\StreamInterface) {
+            $this->body = $body;
+        } else {
+            $this->body = new Stream();
+            if (null !== $body) {
                 $this->body->write($body);
-            } elseif ($body instanceof Stream) {
-                $this->body = $body;
+                $this->body->rewind();
             }
         }
-        if (!empty($protocolVersion)) {
-            $this->protocolVersion = $protocolVersion;
+        if ('' !== $protocolVersion) {
+            $this->protocolVersion = self::filterProtocolVersion($protocolVersion);
         }
     }
 
@@ -53,10 +46,10 @@ class Message implements \Psr\Http\Message\MessageInterface
         return $this->body;
     }
 
-    public function getHeader($name): array
+    public function getHeader(string $name): array
     {
         foreach ($this->headers as $key => $value) {
-            if (strtolower($key) == strtolower($name)) {
+            if (0 === strcasecmp((string) $key, $name)) {
                 return $value;
             }
         }
@@ -64,7 +57,7 @@ class Message implements \Psr\Http\Message\MessageInterface
         return [];
     }
 
-    public function getHeaderLine($name): string
+    public function getHeaderLine(string $name): string
     {
         return implode(', ', $this->getHeader($name));
     }
@@ -79,19 +72,19 @@ class Message implements \Psr\Http\Message\MessageInterface
         return $this->protocolVersion;
     }
 
-    public function getImmutable()
+    public function getImmutable(): bool
     {
         return $this->immutable;
     }
 
-    public function hasHeader($name): bool
+    public function hasHeader(string $name): bool
     {
         if (isset($this->headers[$name])) {
             return true;
         }
 
-        foreach ($this->headers as $key => $value) {
-            if (strtolower($key) == strtolower($name)) {
+        foreach (array_keys($this->headers) as $key) {
+            if (0 === strcasecmp((string) $key, $name)) {
                 return true;
             }
         }
@@ -99,26 +92,21 @@ class Message implements \Psr\Http\Message\MessageInterface
         return false;
     }
 
-    public function withAddedHeader($name, $value): self
+    public function withAddedHeader(string $name, $value): self
     {
-        if (!is_array($value)) {
-            $value = [$value];
-        }
-
         $new = $this;
         if ($this->getImmutable()) {
             $new = clone $this;
         }
 
-        array_walk($new->headers, function (&$item, $key) use ($name, $value) {
-            if (strtolower($key) == strtolower($name)) {
-                $item = array_merge($item, $value);
-            }
-        });
+        $new->addHeader($name, $value);
 
         return $new;
     }
 
+    /**
+     * @return static
+     */
     public function withBody(\Psr\Http\Message\StreamInterface $body): self
     {
         $new = $this;
@@ -131,57 +119,139 @@ class Message implements \Psr\Http\Message\MessageInterface
         return $new;
     }
 
-    public function withHeader($name, $value): self
+    /**
+     * @return static
+     */
+    public function withHeader(string $name, $value): self
+    {
+        self::assertHeaderName($name);
+        $value = self::normalizeHeaderValue($value);
+
+        $new = $this;
+        if ($this->getImmutable()) {
+            $new = clone $this;
+        }
+
+        // Replace in place so the header keeps its position.
+        $headers = [];
+        $replaced = false;
+        foreach ($new->headers as $key => $existing) {
+            if (0 !== strcasecmp((string) $key, $name)) {
+                $headers[$key] = $existing;
+            } elseif (!$replaced) {
+                $headers[$name] = $value;
+                $replaced = true;
+            }
+        }
+        if (!$replaced) {
+            $headers[$name] = $value;
+        }
+        $new->headers = $headers;
+
+        return $new;
+    }
+
+    /**
+     * @return static
+     */
+    public function withProtocolVersion(string $version): self
+    {
+        $new = $this;
+        if ($this->getImmutable()) {
+            $new = clone $this;
+        }
+
+        $new->protocolVersion = self::filterProtocolVersion($version);
+
+        return $new;
+    }
+
+    public function withoutHeader(string $name): self
+    {
+        $new = $this;
+        if ($this->getImmutable()) {
+            $new = clone $this;
+        }
+
+        $new->unsetHeader($name);
+
+        return $new;
+    }
+
+    private function addHeader(string $name, $value): void
+    {
+        self::assertHeaderName($name);
+        $value = self::normalizeHeaderValue($value);
+
+        foreach (array_keys($this->headers) as $key) {
+            if (0 === strcasecmp((string) $key, $name)) {
+                $this->headers[$key] = array_merge($this->headers[$key], $value);
+
+                return;
+            }
+        }
+
+        $this->headers[$name] = $value;
+    }
+
+    private static function filterProtocolVersion(string $version): string
+    {
+        if (1 !== preg_match('/^\d+(?:\.\d+)?$/D', $version)) {
+            throw new \InvalidArgumentException('Invalid HTTP protocol version: '.json_encode($version));
+        }
+
+        return $version;
+    }
+
+    private static function assertHeaderName(string $name): void
+    {
+        // RFC 7230 token
+        if (1 !== preg_match("/^[a-zA-Z0-9'`#$%&*+.^_|~!-]+$/D", $name)) {
+            throw new \InvalidArgumentException('Invalid header name: '.json_encode($name));
+        }
+    }
+
+    /**
+     * @return string[]
+     */
+    private static function normalizeHeaderValue($value): array
     {
         if (!is_array($value)) {
             $value = [$value];
         }
-
-        $new = $this;
-        if ($this->getImmutable()) {
-            $new = clone $this;
+        if ([] === $value) {
+            throw new \InvalidArgumentException('Header value can not be an empty array');
         }
 
-        array_walk($new->headers, function (&$item, $key) use ($name) {
-            if (strtolower($key) == strtolower($name)) {
-                unset($item);
+        $result = [];
+        foreach ($value as $item) {
+            if (!is_string($item) && !is_int($item) && !is_float($item)) {
+                throw new \InvalidArgumentException('Header value must be a string or a number');
             }
-        });
-
-        $new->headers[$name] = $value;
-
-        return $new;
-    }
-
-    public function withProtocolVersion($version): self
-    {
-        $new = $this;
-        if ($this->getImmutable()) {
-            $new = clone $this;
-        }
-
-        $new->protocolVersion = $version;
-
-        return $new;
-    }
-
-    public function withoutHeader($name): self
-    {
-        $new = $this;
-        if ($this->getImmutable()) {
-            $new = clone $this;
-        }
-
-        array_walk($new->headers, function (&$item, $key) use ($name) {
-            if (strtolower($key) == strtolower($name)) {
-                unset($item);
+            $item = trim((string) $item, " \t");
+            // Visible characters, spaces and tabs only; rejects CR/LF injection.
+            if (1 !== preg_match('/^[\x20\x09\x21-\x7E\x80-\xFF]*$/D', $item)) {
+                throw new \InvalidArgumentException('Invalid header value: '.json_encode($item));
             }
-        });
+            $result[] = $item;
+        }
 
-        return $new;
+        return $result;
     }
 
-    public function setImmutable(bool $immutable)
+    private function unsetHeader(string $name): void
+    {
+        foreach (array_keys($this->headers) as $key) {
+            if (0 === strcasecmp((string) $key, $name)) {
+                unset($this->headers[$key]);
+            }
+        }
+    }
+
+    /**
+     * @return static
+     */
+    public function setImmutable(bool $immutable): self
     {
         $this->immutable = $immutable;
 

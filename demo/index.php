@@ -21,4 +21,4 @@ $response->getBody()->write('asdasd');
 // var_dump($response->getHeaderLine("Api-Key"));
 
 header('HTTP/'.$response->getProtocolVersion().' '.$response->getStatusCode().' '.$response->getReasonPhrase(), true, $response->getStatusCode());
-echo $response->send();
+$response->send();

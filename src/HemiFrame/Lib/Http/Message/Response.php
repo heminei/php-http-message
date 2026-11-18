@@ -7,11 +7,11 @@ namespace HemiFrame\Lib\Http\Message;
  */
 class Response extends Message implements \Psr\Http\Message\ResponseInterface
 {
-    /** @var array Map of standard HTTP status code/reason phrases */
-    private static $phrases = [
+    private static array $phrases = [
         100 => 'Continue',
         101 => 'Switching Protocols',
         102 => 'Processing',
+        103 => 'Early Hints',
         200 => 'OK',
         201 => 'Created',
         202 => 'Accepted',
@@ -21,6 +21,7 @@ class Response extends Message implements \Psr\Http\Message\ResponseInterface
         206 => 'Partial Content',
         207 => 'Multi-status',
         208 => 'Already Reported',
+        226 => 'IM Used',
         300 => 'Multiple Choices',
         301 => 'Moved Permanently',
         302 => 'Found',
@@ -29,6 +30,7 @@ class Response extends Message implements \Psr\Http\Message\ResponseInterface
         305 => 'Use Proxy',
         306 => 'Switch Proxy',
         307 => 'Temporary Redirect',
+        308 => 'Permanent Redirect',
         400 => 'Bad Request',
         401 => 'Unauthorized',
         402 => 'Payment Required',
@@ -48,10 +50,11 @@ class Response extends Message implements \Psr\Http\Message\ResponseInterface
         416 => 'Requested range not satisfiable',
         417 => 'Expectation Failed',
         418 => 'I\'m a teapot',
+        421 => 'Misdirected Request',
         422 => 'Unprocessable Entity',
         423 => 'Locked',
         424 => 'Failed Dependency',
-        425 => 'Unordered Collection',
+        425 => 'Too Early',
         426 => 'Upgrade Required',
         428 => 'Precondition Required',
         429 => 'Too Many Requests',
@@ -66,26 +69,22 @@ class Response extends Message implements \Psr\Http\Message\ResponseInterface
         506 => 'Variant Also Negotiates',
         507 => 'Insufficient Storage',
         508 => 'Loop Detected',
+        510 => 'Not Extended',
         511 => 'Network Authentication Required',
     ];
 
-    /**
-     * @var string
-     */
-    private $reasonPhrase = '';
+    private string $reasonPhrase = '';
+
+    private int $statusCode = 200;
 
     /**
-     * @var int
-     */
-    private $statusCode = 200;
-
-    /**
-     * @param Stream|string $body
+     * @param \Psr\Http\Message\StreamInterface|string|null $body
      */
     public function __construct(int $statusCode = 200, string $reasonPhrase = '', array $headers = [], $body = null, string $protocolVersion = '1.1')
     {
+        self::assertStatusCode($statusCode);
         $this->statusCode = $statusCode;
-        $this->reasonPhrase = $reasonPhrase;
+        $this->reasonPhrase = self::filterReasonPhrase($statusCode, $reasonPhrase);
         parent::__construct($headers, $body, $protocolVersion);
     }
 
@@ -99,30 +98,62 @@ class Response extends Message implements \Psr\Http\Message\ResponseInterface
         return $this->statusCode;
     }
 
-    public function withStatus($code, $reasonPhrase = ''): self
+    public function withStatus(int $code, string $reasonPhrase = ''): self
     {
+        self::assertStatusCode($code);
+        $reasonPhrase = self::filterReasonPhrase($code, $reasonPhrase);
+
         $new = $this;
         if ($this->getImmutable()) {
             $new = clone $this;
         }
 
-        $new->statusCode = (int) $code;
-        if ('' == $reasonPhrase && isset(self::$phrases[$new->statusCode])) {
-            $reasonPhrase = self::$phrases[$new->statusCode];
-        }
+        $new->statusCode = $code;
         $new->reasonPhrase = $reasonPhrase;
 
         return $new;
     }
 
-    public function send()
+    /**
+     * Returns the standard phrase when $reasonPhrase is empty.
+     */
+    private static function filterReasonPhrase(int $code, string $reasonPhrase): string
     {
+        if ('' === $reasonPhrase) {
+            return self::$phrases[$code] ?? '';
+        }
+        // Reason phrase goes into the status line, so line breaks and control characters are rejected.
+        if (1 !== preg_match('/^[\x20\x09\x21-\x7E\x80-\xFF]*$/D', $reasonPhrase)) {
+            throw new \InvalidArgumentException('Invalid reason phrase: '.json_encode($reasonPhrase));
+        }
+
+        return $reasonPhrase;
+    }
+
+    public function send(): void
+    {
+        if (headers_sent($file, $line)) {
+            throw new \RuntimeException(sprintf('Unable to send response; headers already sent in %s on line %d', $file, $line));
+        }
+
         header('HTTP/'.$this->getProtocolVersion().' '.$this->getStatusCode().' '.$this->getReasonPhrase(), true, $this->getStatusCode());
 
-        foreach ($this->getHeaders() as $name => $value) {
-            header($name.': '.implode(', ', $value), true);
+        foreach ($this->getHeaders() as $name => $values) {
+            // Keep cookies already set by setcookie(); each Set-Cookie value must be a separate line.
+            $replace = 0 !== strcasecmp((string) $name, 'Set-Cookie');
+            foreach ($values as $value) {
+                header($name.': '.$value, $replace);
+                $replace = false;
+            }
         }
 
         echo (string) $this->getBody();
+    }
+
+    private static function assertStatusCode(int $code): void
+    {
+        if ($code < 100 || $code > 599) {
+            throw new \InvalidArgumentException('Invalid status code: '.$code.'. Must be between 100 and 599');
+        }
     }
 }
