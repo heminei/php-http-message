@@ -3,6 +3,12 @@
 All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project follows [Semantic Versioning](https://semver.org/).
 
+## [3.0.1] - 2026-11-18
+
+### Fixed
+
+- `UploadedFile::moveTo()` failed with `Unable to move uploaded file` outside CLI when the file was not uploaded through the current HTTP request (e.g. created by the application); such files are now moved with `rename()`.
+
 ## [3.0.0] - 2026-11-18
 
 ### Breaking changes
@@ -68,5 +74,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 - `UploadedFile` implements `Stringable`.
 
+[3.0.1]: https://github.com/heminei/php-http-message/compare/3.0.0...3.0.1
 [3.0.0]: https://github.com/heminei/php-http-message/compare/2.1.0...3.0.0
 [2.1.0]: https://github.com/heminei/php-http-message/compare/2.0.1...2.1.0

@@ -130,8 +130,8 @@ class UploadedFile implements \Psr\Http\Message\UploadedFileInterface, \Stringab
         }
 
         if (null !== $this->file) {
-            // move_uploaded_file() only accepts files uploaded through the current SAPI request.
-            $moved = 'cli' === PHP_SAPI ? rename($this->file, $targetPath) : move_uploaded_file($this->file, $targetPath);
+            // move_uploaded_file() only accepts files uploaded through the current request; other files (e.g. created by the application) are renamed.
+            $moved = is_uploaded_file($this->file) ? move_uploaded_file($this->file, $targetPath) : rename($this->file, $targetPath);
             if (!$moved) {
                 throw new \RuntimeException('Unable to move uploaded file to '.$targetPath);
             }
